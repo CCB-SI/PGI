@@ -1,0 +1,42 @@
+services:
+  # ─── Frontend (Next.js – Dev) ───
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: secretaria-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - WATCHPACK_POLLING=true
+    networks:
+      - secretaria-net
+    depends_on:
+      - backend
+
+  # ─── Backend (FastAPI – Dev) ───
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: secretaria-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/uploads:/app/uploads
+    environment:
+      - DATABASE_URL=sqlite:///./gestaodecomunicados.db
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost"]
+    networks:
+      - secretaria-net
+
+networks:
+  secretaria-net:
+    driver: bridge
