@@ -1,6 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
+function authHeaders() {
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) return { 'Authorization': `Bearer ${token}` };
+    }
+    return {};
+}
+
 export async function fetchEvents(filters = {}) {
     try {
         const params = new URLSearchParams();
@@ -50,11 +58,52 @@ export async function fetchResources() {
     }
 }
 
+// --- News (Informativos) CRUD ---
+export async function fetchNews(skip = 0, limit = 100) {
+    try {
+        const res = await fetch(`${API_URL}/news?skip=${skip}&limit=${limit}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch news');
+        return res.json();
+    } catch (error) {
+        console.error("Error fetching news:", error);
+        return [];
+    }
+}
+
+export async function createNews(data) {
+    const res = await fetch(`${API_URL}/news`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao criar informativo'); }
+    return res.json();
+}
+
+export async function updateNews(id, data) {
+    const res = await fetch(`${API_URL}/news/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao autalizar informativo'); }
+    return res.json();
+}
+
+export async function deleteNews(id) {
+    const res = await fetch(`${API_URL}/news/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao deletar informativo'); }
+    return true;
+}
+
 // --- Locations CRUD ---
 export async function createLocation(data) {
     const res = await fetch(`${API_URL}/locations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(data),
     });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao criar comum'); }
@@ -64,7 +113,7 @@ export async function createLocation(data) {
 export async function updateLocation(id, data) {
     const res = await fetch(`${API_URL}/locations/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(data),
     });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao atualizar'); }
@@ -72,7 +121,10 @@ export async function updateLocation(id, data) {
 }
 
 export async function deleteLocation(id) {
-    const res = await fetch(`${API_URL}/locations/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/locations/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao excluir'); }
     return true;
 }
@@ -80,7 +132,11 @@ export async function deleteLocation(id) {
 export async function uploadLocationPhoto(id, file) {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}/locations/${id}/photo`, { method: 'POST', body: formData });
+    const res = await fetch(`${API_URL}/locations/${id}/photo`, {
+        method: 'POST',
+        headers: { ...authHeaders() },
+        body: formData
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao enviar foto'); }
     return res.json();
 }
@@ -89,7 +145,7 @@ export async function uploadLocationPhoto(id, file) {
 export async function createSchedule(locationId, data) {
     const res = await fetch(`${API_URL}/locations/${locationId}/schedules`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(data),
     });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao criar horário'); }
@@ -97,7 +153,10 @@ export async function createSchedule(locationId, data) {
 }
 
 export async function deleteSchedule(scheduleId) {
-    const res = await fetch(`${API_URL}/schedules/${scheduleId}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/schedules/${scheduleId}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao excluir horário'); }
     return true;
 }
@@ -118,7 +177,7 @@ export async function fetchMembers(role = '') {
 export async function createMember(data) {
     const res = await fetch(`${API_URL}/members`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(data),
     });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao cadastrar irmão'); }
@@ -128,7 +187,7 @@ export async function createMember(data) {
 export async function updateMember(id, data) {
     const res = await fetch(`${API_URL}/members/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(data),
     });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao atualizar irmão'); }
@@ -136,19 +195,28 @@ export async function updateMember(id, data) {
 }
 
 export async function deleteMember(id) {
-    const res = await fetch(`${API_URL}/members/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/members/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao excluir irmão'); }
     return true;
 }
 
 export async function linkMemberToLocation(locationId, memberId) {
-    const res = await fetch(`${API_URL}/locations/${locationId}/members/${memberId}`, { method: 'POST' });
+    const res = await fetch(`${API_URL}/locations/${locationId}/members/${memberId}`, {
+        method: 'POST',
+        headers: { ...authHeaders() }
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao vincular'); }
     return res.json();
 }
 
 export async function unlinkMemberFromLocation(locationId, memberId) {
-    const res = await fetch(`${API_URL}/locations/${locationId}/members/${memberId}`, { method: 'DELETE' });
+    const res = await fetch(`${API_URL}/locations/${locationId}/members/${memberId}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
     if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao desvincular'); }
     return true;
 }

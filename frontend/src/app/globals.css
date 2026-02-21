@@ -326,8 +326,9 @@ button {
 }
 
 .quick-access-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 20px;
 }
 
@@ -347,6 +348,8 @@ button {
   text-decoration: none;
   color: inherit;
   min-height: 200px;
+  width: 100%;
+  max-width: 250px;
 }
 
 .quick-card::before {
@@ -1006,10 +1009,6 @@ textarea {
 @media (min-width: 769px) {
   .menu-toggle {
     display: none;
-  }
-
-  .quick-access-grid {
-    grid-template-columns: repeat(5, 1fr);
   }
 }
 
@@ -1756,4 +1755,53 @@ textarea {
 
 .btn-small-edit:hover {
   background: var(--primary-color);
+}
+
+/* ===========================
+   PRINT STYLES
+   =========================== */
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .no-print,
+  .main-header,
+  .main-footer {
+    display: none !important;
+  }
+
+  .print-header {
+    display: block !important;
+  }
+
+  .print-container {
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .agenda-grid {
+    column-count: 2;
+    column-gap: 40px;
+  }
+
+  .agenda-city-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .agenda-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 12px;
+  }
+
+  @page {
+    margin: 1.5cm;
+  }
 }

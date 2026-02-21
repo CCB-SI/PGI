@@ -1,7 +1,10 @@
 'use client';
 import { getPhotoUrl } from '@/services/api';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function ComunDetailModal({ location, onEdit, onDelete, onClose }) {
+    const { user } = useAuth();
     if (!location) return null;
 
     const photoUrl = getPhotoUrl(location.photo_url);
@@ -115,10 +118,14 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
                     )}
                 </div>
 
-                <div className="modal-actions">
-                    <button className="btn-danger" onClick={handleDelete}>Excluir</button>
-                    <button className="btn-primary" onClick={() => onEdit(location)}>Editar</button>
-                </div>
+                {user && (
+                    <div className="modal-actions">
+                        {user.role === 'admin' && (
+                            <button className="btn-danger" onClick={handleDelete}>Excluir</button>
+                        )}
+                        <button className="btn-primary" onClick={() => onEdit(location)}>Editar</button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -4,8 +4,10 @@ import LocationCard from '@/components/LocationCard';
 import ComunModal from '@/components/ComunModal';
 import ComunDetailModal from '@/components/ComunDetailModal';
 import { fetchLocations, createLocation, updateLocation, deleteLocation, uploadLocationPhoto, createSchedule, deleteSchedule, linkMemberToLocation, unlinkMemberFromLocation } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LocaisPage() {
+    const { user } = useAuth();
     const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -111,9 +113,11 @@ export default function LocaisPage() {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Comuns</h1>
-                <button className="btn-primary" onClick={handleNewClick}>
-                    + Cadastrar Comum
-                </button>
+                {user && (
+                    <button className="btn-primary" onClick={handleNewClick}>
+                        + Cadastrar Comum
+                    </button>
+                )}
             </div>
             <p style={{ marginBottom: '24px', color: 'var(--text-secondary)' }}>
                 Igrejas da Regional SAI – Santa Isabel, Arujá e Igaratá.
@@ -140,7 +144,7 @@ export default function LocaisPage() {
                     <p style={{ fontSize: '1.1rem' }}>
                         {searchTerm ? `Nenhum comum encontrado para "${searchTerm}".` : 'Nenhum comum cadastrado ainda.'}
                     </p>
-                    {!searchTerm && (
+                    {!searchTerm && user && (
                         <button className="btn-primary" onClick={handleNewClick} style={{ marginTop: '16px' }}>
                             Cadastrar o primeiro Comum
                         </button>

@@ -1,0 +1,98 @@
+'use client';
+import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+
+export default function LoginPage() {
+    const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const { login } = useAuth();
+    const router = useRouter();
+
+    const handleChange = (e) => {
+        setCredentials({ ...credentials, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+
+        try {
+            const formData = new URLSearchParams();
+            formData.append('username', credentials.username);
+            formData.append('password', credentials.password);
+
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            });
+
+            if (!res.ok) {
+                throw new Error('Email ou senha incorretos');
+            }
+
+            const data = await res.json();
+            login(data.access_token, data.user);
+            router.push('/');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div style={{ maxWidth: '400px', margin: '80px auto', padding: '30px', background: 'white', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <h1 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: '8px' }}>Acesso Restrito</h1>
+                <p style={{ color: 'var(--text-secondary)' }}>Faça login para gerenciar a Secretaria</p>
+            </div>
+
+            {error && (
+                <div style={{ background: '#ffeeee', color: '#d32f2f', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+                    {error}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>E-mail</label>
+                    <input
+                        type="email"
+                        name="username"
+                        value={credentials.username}
+                        onChange={handleChange}
+                        required
+                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                        placeholder="ex: admin@secretaria.com"
+                    />
+                </div>
+                <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Senha</label>
+                    <input
+                        type="password"
+                        name="password"
+                        value={credentials.password}
+                        onChange={handleChange}
+                        required
+                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                        placeholder="••••••••"
+                    />
+                </div>
+
+                <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={loading}
+                    style={{ padding: '14px', fontSize: '1.1rem', marginTop: '10px' }}
+                >
+                    {loading ? 'Acessando...' : 'Entrar'}
+                </button>
+            </form>
+        </div>
+    );
+}

@@ -20,6 +20,9 @@ export default function Footer() {
                     <h3>Contato</h3>
                     <p>Dúvidas técnicas ou solicitações:</p>
                     <Link href="/contato">Enviar mensagem →</Link>
+                    <div style={{ marginTop: '20px' }}>
+                        <Link href="/login" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>Área do Editor / Admin →</Link>
+                    </div>
                 </div>
             </div>
             <div className="container footer-bottom">

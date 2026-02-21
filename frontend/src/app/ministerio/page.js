@@ -1,8 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { fetchMembers, createMember, updateMember, deleteMember, MINISTRY_ROLES } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function MinisterioPage() {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newName, setNewName] = useState('');
@@ -17,7 +21,15 @@ export default function MinisterioPage() {
         setLoading(false);
     };
 
-    useEffect(() => { loadMembers(); }, []);
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/login');
+        } else if (user) {
+            loadMembers();
+        }
+    }, [user, authLoading, router]);
+
+    if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 
     const handleAdd = async () => {
         if (!newName.trim()) { alert('Informe o nome do irmão.'); return; }
@@ -62,22 +74,24 @@ export default function MinisterioPage() {
             </p>
 
             {/* Formulário de adição */}
-            <div className="member-form-inline">
-                <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Nome do irmão"
-                    style={{ minWidth: '200px', flex: 1 }}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                />
-                <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-                    {MINISTRY_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-                <button className="btn-primary" onClick={handleAdd} style={{ padding: '8px 20px' }}>
-                    + Cadastrar
-                </button>
-            </div>
+            {user && (
+                <div className="member-form-inline">
+                    <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Nome do irmão"
+                        style={{ minWidth: '200px', flex: 1 }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                    />
+                    <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
+                        {MINISTRY_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <button className="btn-primary" onClick={handleAdd} style={{ padding: '8px 20px' }}>
+                        + Cadastrar
+                    </button>
+                </div>
+            )}
 
             {loading ? (
                 <p>Carregando...</p>
@@ -91,7 +105,7 @@ export default function MinisterioPage() {
                         <tr>
                             <th>Nome</th>
                             <th>Cargo</th>
-                            <th style={{ width: '140px' }}>Ações</th>
+                            {user && <th style={{ width: '140px' }}>Ações</th>}
                         </tr>
                     </thead>
                     <tbody>
@@ -119,12 +133,16 @@ export default function MinisterioPage() {
                                         <>
                                             <td>{m.name}</td>
                                             <td><span className="member-tag">{m.role}</span></td>
-                                            <td>
-                                                <div style={{ display: 'flex', gap: '6px' }}>
-                                                    <button className="btn-small btn-small-edit" onClick={() => startEdit(m)}>Editar</button>
-                                                    <button className="btn-small btn-small-danger" onClick={() => handleDelete(m.id, m.name)}>Excluir</button>
-                                                </div>
-                                            </td>
+                                            {user && (
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                                        <button className="btn-small btn-small-edit" onClick={() => startEdit(m)}>Editar</button>
+                                                        {user.role === 'admin' && (
+                                                            <button className="btn-small btn-small-danger" onClick={() => handleDelete(m.id, m.name)}>Excluir</button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            )}
                                         </>
                                     )}
                                 </tr>

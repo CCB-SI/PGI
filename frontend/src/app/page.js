@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 const quickAccessCards = [
@@ -50,69 +50,17 @@ const quickAccessCards = [
   },
 ];
 
-const allNews = [
-  {
-    id: 1,
-    tag: 'Reunião',
-    tagColor: '#0d47a1',
-    date: '15/03/2026',
-    title: 'Reunião para Encarregados e Instrutores',
-    content: 'Data: 15/03 às 14h30 – Local: Casa de Oração Central. Pauta: Alinhamento sobre o novo MSA.',
-  },
-  {
-    id: 2,
-    tag: 'Exames',
-    tagColor: '#1565c0',
-    date: '20/03/2026',
-    title: 'Exames de Candidatos(as) e GEM',
-    content: 'Cronograma de testes para oficialização e reuniões de conselho do GEM (Grupo de Estudos Musicais).',
-  },
-  {
-    id: 3,
-    tag: 'Ensaio',
-    tagColor: '#1976d2',
-    date: '22/03/2026',
-    title: 'Ensaio Regional – Março/2026',
-    content: 'Resumo de presença, orientações de afinação e dinâmica para a orquestra da Regional SAI.',
-  },
-  {
-    id: 4,
-    tag: 'Atualização',
-    tagColor: '#1e88e5',
-    date: '01/04/2026',
-    title: 'Atualização de Métodos',
-    content: 'Informativo sobre a transição de métodos e orientações para os alunos iniciantes.',
-  },
-  {
-    id: 5,
-    tag: 'Aviso',
-    tagColor: '#2196f3',
-    date: '05/04/2026',
-    title: 'Alteração de Escala de Ensaios',
-    content: 'Avisos sobre mudanças de horários em virtude de feriados ou eventos extraordinários.',
-  },
-  {
-    id: 6,
-    tag: 'Reunião',
-    tagColor: '#0d47a1',
-    date: '12/04/2026',
-    title: 'Reunião Ministerial Regional',
-    content: 'Pauta especial sobre organização dos ensaios do segundo semestre e designações.',
-  },
-  {
-    id: 7,
-    tag: 'Ensaio',
-    tagColor: '#1976d2',
-    date: '19/04/2026',
-    title: 'Ensaio Regional – Abril/2026',
-    content: 'Repertório definido: Hinos 278 e 454. Todos os músicos devem confirmar presença.',
-  },
-];
+import { fetchNews } from '@/services/api';
 
 const INITIAL_NEWS_COUNT = 5;
 
 export default function Home() {
+  const [allNews, setAllNews] = useState([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_NEWS_COUNT);
+
+  useEffect(() => {
+    fetchNews().then(setAllNews).catch(console.error);
+  }, []);
 
   const visibleNews = allNews.slice(0, visibleCount);
   const hasMore = visibleCount < allNews.length;
@@ -125,7 +73,7 @@ export default function Home() {
         <h1>Secretaria Musical</h1>
         <p className="hero-subtitle">Regional SAI – Santa Isabel, Arujá e Igaratá</p>
         <p>Centralização de informações técnicas, calendário de ensaios e suporte aos músicos, instrutores e examinadoras.</p>
-        <Link href="/ensaios" className="cta-button">
+        <Link href="/eventos" className="cta-button">
           Ver Agenda de Ensaios
         </Link>
       </section>
@@ -148,22 +96,27 @@ export default function Home() {
       {/* === Mural de Informativos === */}
       <section className="news-section">
         <h2 className="section-title">Mural de Informativos</h2>
-        <div className="news-grid">
-          {visibleNews.map((news) => (
-            <article key={news.id} className="news-card">
-              <div className="news-card-header">
-                <span className="news-tag" style={{ backgroundColor: news.tagColor }}>
-                  {news.tag}
-                </span>
-                <span className="news-date">{news.date}</span>
-              </div>
-              <div className="news-card-body">
-                <h3>{news.title}</h3>
-                <p>{news.content}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+
+        {allNews.length === 0 ? (
+          <p style={{ color: 'var(--text-secondary)' }}>Nenhum informativo no momento.</p>
+        ) : (
+          <div className="news-grid">
+            {visibleNews.map((news) => (
+              <article key={news.id} className="news-card">
+                <div className="news-card-header">
+                  <span className="news-tag" style={{ backgroundColor: news.tag_color }}>
+                    {news.tag}
+                  </span>
+                  <span className="news-date">{news.date}</span>
+                </div>
+                <div className="news-card-body">
+                  <h3>{news.title}</h3>
+                  <p style={{ whiteSpace: 'pre-line' }}>{news.content}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
         {hasMore && (
           <div className="load-more-container">
