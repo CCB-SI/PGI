@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
@@ -102,3 +102,46 @@ class Event(EventBase):
 
     class Config:
         from_attributes = True
+
+# --- News (Informativos) ---
+class NewsBase(BaseModel):
+    tag: str
+    tag_color: Optional[str] = "#0d47a1"
+    date: str
+    title: str
+    content: str
+
+class NewsCreate(NewsBase):
+    pass
+
+class NewsUpdate(NewsBase):
+    pass
+
+class News(NewsBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+# --- Users & Auth ---
+class UserBase(BaseModel):
+    email: EmailStr
+
+class UserCreate(UserBase):
+    password: str
+    role: Optional[str] = "editor"
+
+class UserOut(UserBase):
+    id: int
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    user: UserOut
+
+class TokenData(BaseModel):
+    email: Optional[str] = None

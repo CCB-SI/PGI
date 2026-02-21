@@ -31,8 +31,9 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/uploads:/app/uploads
+      - db_data:/app/data
     environment:
-      - DATABASE_URL=sqlite:///./gestaodecomunicados.db
+      - DATABASE_URL=sqlite:////app/data/gestaodecomunicados.db
       - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost"]
     networks:
       - secretaria-net
@@ -40,3 +41,6 @@ services:
 networks:
   secretaria-net:
     driver: bridge
+
+volumes:
+  db_data:

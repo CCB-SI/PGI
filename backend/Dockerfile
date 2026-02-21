@@ -9,6 +9,13 @@ WORKDIR /app
 # Install uv via pip (evita dependência de ghcr.io)
 RUN pip install --no-cache-dir uv
 
+# Install native build tools for python packages like bcrypt
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libffi-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy project files
 COPY pyproject.toml ./
 COPY src/ ./src/

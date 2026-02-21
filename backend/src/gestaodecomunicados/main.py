@@ -7,8 +7,23 @@ from .core.database import engine, Base
 from .models import all_models  # Importa modelos para registrar no SQLAlchemy
 import os
 
+from .core.database import SessionLocal
+from .core.security import get_password_hash
+
 # Criar tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
+
+def init_db():
+    db = SessionLocal()
+    admin_user = db.query(all_models.User).filter(all_models.User.email == "admin@secretaria.com").first()
+    if not admin_user:
+        hashed_password = get_password_hash("admin")
+        db_user = all_models.User(email="admin@secretaria.com", password_hash=hashed_password, role="admin")
+        db.add(db_user)
+        db.commit()
+    db.close()
+
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session, joinedload
-from typing import List
+from typing import List, Optional
 
 from ...core.database import get_db
 from ...models import all_models as models
 from ...schemas import all_schemas as schemas
+from . import auth
 
 api_router = APIRouter()
+api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 
 from .endpoints import resources, contact
 api_router.include_router(resources.router, tags=["downloads"])
@@ -43,7 +45,11 @@ def read_event(event_id: int, db: Session = Depends(get_db)):
     return event
 
 @api_router.post("/events", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
-def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
+def create_event(
+    event: schemas.EventCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     category = db.query(models.Category).filter(models.Category.id == event.category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -52,7 +58,6 @@ def create_event(event: schemas.EventCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_event)
     return db_event
-
 # --- Categories Endpoints ---
 @api_router.get("/categories", response_model=List[schemas.Category])
 def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -60,13 +65,16 @@ def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     return categories
 
 @api_router.post("/categories", response_model=schemas.Category, status_code=status.HTTP_201_CREATED)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+def create_category(
+    category: schemas.CategoryCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     db_category = models.Category(**category.model_dump())
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
     return db_category
-
 # --- MinistryMember (Irmãos do Ministério) Endpoints ---
 @api_router.get("/members", response_model=List[schemas.MinistryMember])
 def read_members(role: Optional[str] = None, db: Session = Depends(get_db)):
@@ -76,7 +84,11 @@ def read_members(role: Optional[str] = None, db: Session = Depends(get_db)):
     return query.order_by(models.MinistryMember.name).all()
 
 @api_router.post("/members", response_model=schemas.MinistryMember, status_code=status.HTTP_201_CREATED)
-def create_member(member: schemas.MinistryMemberCreate, db: Session = Depends(get_db)):
+def create_member(
+    member: schemas.MinistryMemberCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     db_member = models.MinistryMember(**member.model_dump())
     db.add(db_member)
     db.commit()
@@ -84,7 +96,12 @@ def create_member(member: schemas.MinistryMemberCreate, db: Session = Depends(ge
     return db_member
 
 @api_router.put("/members/{member_id}", response_model=schemas.MinistryMember)
-def update_member(member_id: int, member: schemas.MinistryMemberCreate, db: Session = Depends(get_db)):
+def update_member(
+    member_id: int, 
+    member: schemas.MinistryMemberCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     db_member = db.query(models.MinistryMember).filter(models.MinistryMember.id == member_id).first()
     if not db_member:
         raise HTTPException(status_code=404, detail="Irmão não encontrado")
@@ -95,17 +112,25 @@ def update_member(member_id: int, member: schemas.MinistryMemberCreate, db: Sess
     return db_member
 
 @api_router.delete("/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_member(member_id: int, db: Session = Depends(get_db)):
+def delete_member(
+    member_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_admin)
+):
     db_member = db.query(models.MinistryMember).filter(models.MinistryMember.id == member_id).first()
     if not db_member:
         raise HTTPException(status_code=404, detail="Irmão não encontrado")
     db.delete(db_member)
     db.commit()
     return None
-
 # --- Location Members (vincular irmãos a comuns) ---
 @api_router.post("/locations/{location_id}/members/{member_id}", status_code=status.HTTP_201_CREATED)
-def add_member_to_location(location_id: int, member_id: int, db: Session = Depends(get_db)):
+def add_member_to_location(
+    location_id: int, 
+    member_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     location = db.query(models.Location).filter(models.Location.id == location_id).first()
     if not location:
         raise HTTPException(status_code=404, detail="Comum não encontrado")
@@ -118,7 +143,12 @@ def add_member_to_location(location_id: int, member_id: int, db: Session = Depen
     return {"message": "Irmão vinculado"}
 
 @api_router.delete("/locations/{location_id}/members/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
-def remove_member_from_location(location_id: int, member_id: int, db: Session = Depends(get_db)):
+def remove_member_from_location(
+    location_id: int, 
+    member_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     location = db.query(models.Location).options(
         joinedload(models.Location.members)
     ).filter(models.Location.id == location_id).first()
@@ -131,7 +161,6 @@ def remove_member_from_location(location_id: int, member_id: int, db: Session = 
         location.members.remove(member)
         db.commit()
     return None
-
 # --- Locations (Comuns) Endpoints ---
 @api_router.get("/locations", response_model=List[schemas.Location])
 def read_locations(
@@ -160,7 +189,11 @@ def read_location(location_id: int, db: Session = Depends(get_db)):
     return location
 
 @api_router.post("/locations", response_model=schemas.Location, status_code=status.HTTP_201_CREATED)
-def create_location(location: schemas.LocationCreate, db: Session = Depends(get_db)):
+def create_location(
+    location: schemas.LocationCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     db_location = models.Location(**location.model_dump())
     db.add(db_location)
     db.commit()
@@ -168,7 +201,12 @@ def create_location(location: schemas.LocationCreate, db: Session = Depends(get_
     return db_location
 
 @api_router.put("/locations/{location_id}", response_model=schemas.Location)
-def update_location(location_id: int, location: schemas.LocationUpdate, db: Session = Depends(get_db)):
+def update_location(
+    location_id: int, 
+    location: schemas.LocationUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     db_location = db.query(models.Location).filter(models.Location.id == location_id).first()
     if not db_location:
         raise HTTPException(status_code=404, detail="Comum não encontrado")
@@ -180,14 +218,17 @@ def update_location(location_id: int, location: schemas.LocationUpdate, db: Sess
     return db_location
 
 @api_router.delete("/locations/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_location(location_id: int, db: Session = Depends(get_db)):
+def delete_location(
+    location_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_admin)
+):
     db_location = db.query(models.Location).filter(models.Location.id == location_id).first()
     if not db_location:
         raise HTTPException(status_code=404, detail="Comum não encontrado")
     db.delete(db_location)
     db.commit()
     return None
-
 # --- Schedules (Horários) Endpoints ---
 @api_router.get("/locations/{location_id}/schedules", response_model=List[schemas.Schedule])
 def read_schedules(location_id: int, db: Session = Depends(get_db)):
@@ -197,7 +238,12 @@ def read_schedules(location_id: int, db: Session = Depends(get_db)):
     return db.query(models.Schedule).filter(models.Schedule.location_id == location_id).all()
 
 @api_router.post("/locations/{location_id}/schedules", response_model=schemas.Schedule, status_code=status.HTTP_201_CREATED)
-def create_schedule(location_id: int, schedule: schemas.ScheduleCreate, db: Session = Depends(get_db)):
+def create_schedule(
+    location_id: int, 
+    schedule: schemas.ScheduleCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
     location = db.query(models.Location).filter(models.Location.id == location_id).first()
     if not location:
         raise HTTPException(status_code=404, detail="Comum não encontrado")
@@ -208,14 +254,17 @@ def create_schedule(location_id: int, schedule: schemas.ScheduleCreate, db: Sess
     return db_schedule
 
 @api_router.delete("/schedules/{schedule_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
+def delete_schedule(
+    schedule_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_admin)
+):
     db_schedule = db.query(models.Schedule).filter(models.Schedule.id == schedule_id).first()
     if not db_schedule:
         raise HTTPException(status_code=404, detail="Horário não encontrado")
     db.delete(db_schedule)
     db.commit()
     return None
-
 # --- Upload de Foto ---
 import os
 import uuid
@@ -226,7 +275,8 @@ UPLOAD_DIR = "/app/uploads"
 async def upload_location_photo(
     location_id: int, 
     file: UploadFile = File(...), 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
 ):
     db_location = db.query(models.Location).filter(models.Location.id == location_id).first()
     if not db_location:
@@ -248,3 +298,49 @@ async def upload_location_photo(
     db.commit()
     db.refresh(db_location)
     return db_location
+# --- News (Informativos) Endpoints ---
+@api_router.get("/news", response_model=List[schemas.News])
+def read_news(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return db.query(models.News).order_by(models.News.id.desc()).offset(skip).limit(limit).all()
+
+@api_router.post("/news", response_model=schemas.News, status_code=status.HTTP_201_CREATED)
+def create_news(
+    news: schemas.NewsCreate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
+    db_news = models.News(**news.model_dump())
+    db.add(db_news)
+    db.commit()
+    db.refresh(db_news)
+    return db_news
+
+@api_router.put("/news/{news_id}", response_model=schemas.News)
+def update_news(
+    news_id: int, 
+    news: schemas.NewsUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_editor_or_admin)
+):
+    db_news = db.query(models.News).filter(models.News.id == news_id).first()
+    if not db_news:
+        raise HTTPException(status_code=404, detail="Informativo não encontrado")
+    update_data = news.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_news, field, value)
+    db.commit()
+    db.refresh(db_news)
+    return db_news
+
+@api_router.delete("/news/{news_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_news(
+    news_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(auth.require_admin)
+):
+    db_news = db.query(models.News).filter(models.News.id == news_id).first()
+    if not db_news:
+        raise HTTPException(status_code=404, detail="Informativo não encontrado")
+    db.delete(db_news)
+    db.commit()
+    return None
