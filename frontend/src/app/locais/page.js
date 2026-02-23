@@ -5,9 +5,11 @@ import ComunModal from '@/components/ComunModal';
 import ComunDetailModal from '@/components/ComunDetailModal';
 import { fetchLocations, createLocation, updateLocation, deleteLocation, uploadLocationPhoto, createSchedule, deleteSchedule, linkMemberToLocation, unlinkMemberFromLocation } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function LocaisPage() {
     const { user } = useAuth();
+    const { addToast } = useToast();
     const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -132,15 +134,19 @@ export default function LocaisPage() {
             />
 
             {loading ? (
-                <p>Carregando comuns...</p>
+                <div className="location-grid">
+                    {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: '240px' }} />)}
+                </div>
             ) : filteredLocations.length > 0 ? (
                 <div className="location-grid">
-                    {filteredLocations.map(loc => (
-                        <LocationCard key={loc.id} {...loc} onClick={() => handleCardClick(loc)} />
+                    {filteredLocations.map((loc, index) => (
+                        <div key={loc.id} className={`animate-in stagger-${(index % 8) + 1}`}>
+                            <LocationCard {...loc} onClick={() => handleCardClick(loc)} />
+                        </div>
                     ))}
                 </div>
             ) : (
-                <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)', animation: 'fadeInUp 0.5s forwards' }}>
                     <p style={{ fontSize: '1.1rem' }}>
                         {searchTerm ? `Nenhum comum encontrado para "${searchTerm}".` : 'Nenhum comum cadastrado ainda.'}
                     </p>

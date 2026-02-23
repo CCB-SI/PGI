@@ -1,7 +1,8 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ScrollToTop from '@/components/ScrollToTop';
 import { AuthProvider } from '@/context/AuthContext';
-import './globals.css';
+import { ToastProvider } from '@/context/ToastContext';
 
 export const metadata = {
   title: 'Secretaria Musical – Regional SAI',
@@ -19,11 +20,14 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          <Header />
-          <main className="container" style={{ minHeight: '80vh', padding: '20px 0' }}>
-            {children}
-          </main>
-          <Footer />
+          <ToastProvider>
+            <Header />
+            <main className="container" style={{ minHeight: '80vh', padding: '20px 0' }}>
+              {children}
+            </main>
+            <Footer />
+            <ScrollToTop />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

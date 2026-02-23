@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
-    const [error, setError] = useState(null);
+    const { addToast } = useToast();
     const [loading, setLoading] = useState(false);
 
     const { login } = useAuth();
@@ -17,7 +18,6 @@ export default function LoginPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
         setLoading(true);
 
         try {
@@ -25,7 +25,7 @@ export default function LoginPage() {
             formData.append('username', credentials.username);
             formData.append('password', credentials.password);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/auth/login`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
@@ -37,26 +37,21 @@ export default function LoginPage() {
 
             const data = await res.json();
             login(data.access_token, data.user);
+            addToast('Login realizado com sucesso!');
             router.push('/');
         } catch (err) {
-            setError(err.message);
+            addToast(err.message, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: '400px', margin: '80px auto', padding: '30px', background: 'white', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
+        <div className="animate-in" style={{ maxWidth: '400px', margin: '80px auto', padding: '30px', background: 'white', borderRadius: '12px', boxShadow: '0 8px 30px rgba(0,0,0,0.05)' }}>
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                 <h1 style={{ color: 'var(--primary-color)', fontSize: '1.6rem', marginBottom: '8px' }}>Acesso Restrito</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>Faça login para gerenciar a Secretaria</p>
             </div>
-
-            {error && (
-                <div style={{ background: '#ffeeee', color: '#d32f2f', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
-                    {error}
-                </div>
-            )}
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div>

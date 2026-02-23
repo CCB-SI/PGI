@@ -2,13 +2,16 @@
 import { useState, useEffect } from 'react';
 import { fetchMembers, createMember, updateMember, deleteMember, MINISTRY_ROLES } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 
 export default function MinisterioPage() {
     const { user, loading: authLoading } = useAuth();
+    const { addToast } = useToast();
     const router = useRouter();
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const [newName, setNewName] = useState('');
     const [newRole, setNewRole] = useState(MINISTRY_ROLES[0]);
     const [editingId, setEditingId] = useState(null);
@@ -16,9 +19,14 @@ export default function MinisterioPage() {
     const [editRole, setEditRole] = useState('');
 
     const loadMembers = async () => {
-        const data = await fetchMembers();
-        setMembers(data);
-        setLoading(false);
+        try {
+            const data = await fetchMembers();
+            setMembers(data);
+        } catch (err) {
+            addToast('Erro ao carregar ministério', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -32,16 +40,29 @@ export default function MinisterioPage() {
     if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 
     const handleAdd = async () => {
-        if (!newName.trim()) { alert('Informe o nome do irmão.'); return; }
-        await createMember({ name: newName.trim(), role: newRole });
-        setNewName('');
-        await loadMembers();
+        if (!newName.trim()) { addToast('Informe o nome do irmão.', 'warning'); return; }
+        setActionLoading(true);
+        try {
+            await createMember({ name: newName.trim(), role: newRole });
+            setNewName('');
+            addToast('Membro cadastrado com sucesso!');
+            await loadMembers();
+        } catch (err) {
+            addToast('Erro ao cadastrar', 'error');
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     const handleDelete = async (id, name) => {
         if (!window.confirm(`Remover "${name}"?`)) return;
-        await deleteMember(id);
-        await loadMembers();
+        try {
+            await deleteMember(id);
+            addToast('Membro removido');
+            await loadMembers();
+        } catch (err) {
+            addToast('Erro ao remover', 'error');
+        }
     };
 
     const startEdit = (m) => {
@@ -52,9 +73,14 @@ export default function MinisterioPage() {
 
     const handleUpdate = async () => {
         if (!editName.trim()) return;
-        await updateMember(editingId, { name: editName.trim(), role: editRole });
-        setEditingId(null);
-        await loadMembers();
+        try {
+            await updateMember(editingId, { name: editName.trim(), role: editRole });
+            setEditingId(null);
+            addToast('Alterações salvas');
+            await loadMembers();
+        } catch (err) {
+            addToast('Erro ao salvar', 'error');
+        }
     };
 
     const cancelEdit = () => setEditingId(null);
@@ -67,7 +93,7 @@ export default function MinisterioPage() {
     });
 
     return (
-        <div>
+        <div className="animate-in">
             <h1 className="section-title">Irmãos do Ministério</h1>
             <p style={{ marginBottom: '24px', color: 'var(--text-secondary)' }}>
                 Cadastro prévio dos irmãos para vínculo com as Comuns.
@@ -87,14 +113,19 @@ export default function MinisterioPage() {
                     <select value={newRole} onChange={(e) => setNewRole(e.target.value)}>
                         {MINISTRY_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
-                    <button className="btn-primary" onClick={handleAdd} style={{ padding: '8px 20px' }}>
-                        + Cadastrar
+                    <button
+                        className="btn-primary"
+                        onClick={handleAdd}
+                        style={{ padding: '8px 20px', minWidth: '120px' }}
+                        disabled={actionLoading}
+                    >
+                        {actionLoading ? 'Gravando...' : '+ Cadastrar'}
                     </button>
                 </div>
             )}
 
             {loading ? (
-                <p>Carregando...</p>
+                <div className="skeleton" style={{ height: '300px', width: '100%' }} />
             ) : members.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
                     <p>Nenhum irmão cadastrado ainda.</p>

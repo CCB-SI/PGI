@@ -13,6 +13,31 @@ from .core.security import get_password_hash
 # Criar tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
 
+def migrate_db():
+    """Garante que colunas novas existam em tabelas já criadas"""
+    import sqlite3
+    db_url = os.getenv("DATABASE_URL", "sqlite:///./gestaodecomunicados.db")
+    if db_url.startswith("sqlite:///"):
+        path = db_url.replace("sqlite:///", "")
+        if os.path.exists(path):
+            conn = sqlite3.connect(path)
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(resources)")
+            columns = [row[1] for row in cursor.fetchall()]
+            if 'category_id' not in columns:
+                print("Migrating database: adding category_id to resources...")
+                cursor.execute("ALTER TABLE resources ADD COLUMN category_id INTEGER REFERENCES download_categories(id)")
+            if 'is_external' not in columns:
+                print("Migrating database: adding is_external to resources...")
+                cursor.execute("ALTER TABLE resources ADD COLUMN is_external BOOLEAN DEFAULT 0")
+            if 'external_url' not in columns:
+                print("Migrating database: adding external_url to resources...")
+                cursor.execute("ALTER TABLE resources ADD COLUMN external_url TEXT")
+            conn.commit()
+            conn.close()
+
+migrate_db()
+
 def init_db():
     db = SessionLocal()
     admin_user = db.query(all_models.User).filter(all_models.User.email == "admin@secretaria.com").first()

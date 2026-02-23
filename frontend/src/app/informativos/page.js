@@ -102,7 +102,7 @@ export default function InformativosPage() {
                     {tags.map(tag => (
                         <button
                             key={tag}
-                            onClick={() => { setFilterTag(tag); setVisibleCount(INITIAL_COUNT); }}
+                            onClick={() => { setFilterTag(tag); setVisibleCount(6); }}
                             style={{
                                 padding: '8px 18px',
                                 borderRadius: '20px',
@@ -122,11 +122,18 @@ export default function InformativosPage() {
             )}
 
             {loading ? (
-                <p>Carregando informativos...</p>
+                <div className="news-grid">
+                    {[1, 2, 3].map(i => <div key={i} className="skeleton" style={{ height: '200px' }} />)}
+                </div>
+            ) : visible.length === 0 ? (
+                <p style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Nenhum informativo registrado.</p>
             ) : (
                 <div className="news-grid">
-                    {visible.map((news) => (
-                        <article key={news.id} className="news-card">
+                    {visible.map((news, index) => (
+                        <article
+                            key={news.id}
+                            className={`news-card animate-in stagger-${(index % 8) + 1}`}
+                        >
                             <div className="news-card-header">
                                 <span className="news-tag" style={{ backgroundColor: news.tag_color }}>
                                     {news.tag}
@@ -151,17 +158,11 @@ export default function InformativosPage() {
                 </div>
             )}
 
-            {!loading && visible.length === 0 && (
-                <p style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                    Nenhum informativo encontrado.
-                </p>
-            )}
-
             {hasMore && (
                 <div className="load-more-container">
                     <button
                         className="btn-load-more"
-                        onClick={() => setVisibleCount(prev => prev + 3)}
+                        onClick={() => setVisibleCount(v => v + 3)}
                     >
                         Carregar Mais
                     </button>

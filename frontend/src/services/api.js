@@ -58,6 +58,66 @@ export async function fetchResources() {
     }
 }
 
+export async function deleteResource(id) {
+    const res = await fetch(`${API_URL}/resources/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao deletar recurso'); }
+    return true;
+}
+
+export async function createResource(formData) {
+    const res = await fetch(`${API_URL}/resources`, {
+        method: 'POST',
+        headers: { ...authHeaders() },
+        body: formData,
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao criar recurso'); }
+    return res.json();
+}
+
+// --- Download Categories CRUD ---
+export async function fetchDownloadCategories() {
+    try {
+        const res = await fetch(`${API_URL}/download_categories`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        return res.json();
+    } catch (error) {
+        console.error("Error fetching download categories:", error);
+        return [];
+    }
+}
+
+export async function createDownloadCategory(data) {
+    const res = await fetch(`${API_URL}/download_categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao criar categoria'); }
+    return res.json();
+}
+
+export async function updateDownloadCategory(id, data) {
+    const res = await fetch(`${API_URL}/download_categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao atualizar categoria'); }
+    return res.json();
+}
+
+export async function deleteDownloadCategory(id) {
+    const res = await fetch(`${API_URL}/download_categories/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao deletar categoria'); }
+    return true;
+}
+
 // --- News (Informativos) CRUD ---
 export async function fetchNews(skip = 0, limit = 100) {
     try {
