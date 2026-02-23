@@ -5,7 +5,7 @@ import { EVENT_TYPES, DAYS_OF_WEEK, TIMES, RECURRENCES, fetchMembers } from '@/s
 export default function ComunModal({ location, isEditing, onSave, onClose }) {
     const emptyForm = {
         name: '', address: '', city: 'Santa Isabel', description: '',
-        latitude: '', longitude: '', map_url: '',
+        latitude: '', longitude: '', map_url: '', waze_url: '',
     };
 
     const [form, setForm] = useState(emptyForm);
@@ -42,6 +42,7 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                 latitude: location.latitude || '',
                 longitude: location.longitude || '',
                 map_url: location.map_url || '',
+                waze_url: location.waze_url || '',
             });
             setSchedules(location.schedules || []);
             setSelectedMemberIds((location.members || []).map(m => m.id));
@@ -168,6 +169,10 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                         <div className="form-group full-width">
                             <label>Link Google Maps</label>
                             <input name="map_url" value={form.map_url} onChange={handleChange} placeholder="https://maps.google.com/..." />
+                        </div>
+                        <div className="form-group full-width">
+                            <label>Link Waze</label>
+                            <input name="waze_url" value={form.waze_url} onChange={handleChange} placeholder="https://waze.com/ul?..." />
                         </div>
                         <div className="form-group full-width">
                             <label>Descrição</label>

@@ -51,6 +51,7 @@ class Location(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     map_url = Column(String, nullable=True)
+    waze_url = Column(String, nullable=True)
 
     # Relacionamentos
     events = relationship("Event", back_populates="location")

@@ -57,11 +57,18 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
                     <div className="detail-section">
                         <h4>📍 Endereço</h4>
                         <p>{location.address}</p>
-                        {gpsLink && (
-                            <a href={gpsLink} target="_blank" rel="noopener noreferrer" className="btn-map-link">
-                                Abrir no Google Maps →
-                            </a>
-                        )}
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                            {gpsLink && (
+                                <a href={gpsLink} target="_blank" rel="noopener noreferrer" className="btn-map-link">
+                                    Google Maps →
+                                </a>
+                            )}
+                            {location.waze_url && (
+                                <a href={location.waze_url} target="_blank" rel="noopener noreferrer" className="btn-map-link" style={{ background: '#33ccff', borderColor: '#33ccff' }}>
+                                    Abrir no Waze →
+                                </a>
+                            )}
+                        </div>
                     </div>
 
                     {/* Horários agrupados por tipo */}

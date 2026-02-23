@@ -59,6 +59,7 @@ class LocationBase(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     map_url: Optional[str] = None
+    waze_url: Optional[str] = None
 
 class LocationCreate(LocationBase):
     pass
@@ -72,6 +73,7 @@ class LocationUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     map_url: Optional[str] = None
+    waze_url: Optional[str] = None
 
 class Location(LocationBase):
     id: int

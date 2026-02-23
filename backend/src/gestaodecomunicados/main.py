@@ -33,6 +33,14 @@ def migrate_db():
             if 'external_url' not in columns:
                 print("Migrating database: adding external_url to resources...")
                 cursor.execute("ALTER TABLE resources ADD COLUMN external_url TEXT")
+            
+            # Migration for locations
+            cursor.execute("PRAGMA table_info(locations)")
+            loc_columns = [row[1] for row in cursor.fetchall()]
+            if 'waze_url' not in loc_columns:
+                print("Migrating database: adding waze_url to locations...")
+                cursor.execute("ALTER TABLE locations ADD COLUMN waze_url TEXT")
+
             conn.commit()
             conn.close()
 
