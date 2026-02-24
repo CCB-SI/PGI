@@ -16,7 +16,6 @@ export default function Header() {
     <header className="main-header">
       <div className="container header-content">
         <Link href="/" className="logo">
-          <span className="logo-icon">♪</span>
           PGRI Santa Isabel
         </Link>
 

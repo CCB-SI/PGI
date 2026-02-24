@@ -2009,11 +2009,13 @@ textarea {
 
   .no-print,
   .main-header,
-  .main-footer {
+  .main-footer,
+  .agenda-grid {
     display: none !important;
   }
 
-  .print-header {
+  /* Exibe o container da tabela, que por padrão fica oculto na tela */
+  #print-only-table {
     display: block !important;
   }
 
@@ -2024,22 +2026,9 @@ textarea {
     margin: 0;
   }
 
-  .agenda-grid {
-    column-count: 2;
-    column-gap: 40px;
-  }
-
-  .agenda-city-section {
+  .classic-print-header {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-
-  .agenda-card {
-    border: 1px solid #ccc !important;
-    box-shadow: none !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 12px;
   }
 
   @page {

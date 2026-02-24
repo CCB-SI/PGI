@@ -1,19 +1,23 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchLocations } from '@/services/api';
+import { fetchLocations, fetchNews } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
 
 export default function AgendaPage() {
     const [locations, setLocations] = useState([]);
+    const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterCity, setFilterCity] = useState('');
 
-    const loadLocations = async () => {
+    const loadData = async () => {
         try {
-            // Se o backend suportasse: const data = await fetchLocations(filterCity);
-            const data = await fetchLocations();
-            setLocations(data);
+            const [locData, newsData] = await Promise.all([
+                fetchLocations(),
+                fetchNews()
+            ]);
+            setLocations(locData);
+            setNews(newsData);
         } catch (error) {
             console.error(error);
         } finally {
@@ -21,7 +25,7 @@ export default function AgendaPage() {
         }
     };
 
-    useEffect(() => { loadLocations(); }, []);
+    useEffect(() => { loadData(); }, []);
 
     // 1. Filtrar horários de todas as comuns (ignorando Culto e GEM)
     const allEvents = [];
@@ -130,13 +134,38 @@ export default function AgendaPage() {
     // Ordenar cronologicamente
     processedEvents.sort((a, b) => a.nextDateObj - b.nextDateObj);
 
-    // Agrupar por Tipo e depois por Cidade
+    // Agrupar por Tipo e depois por Cidade (Para Tela)
     const grouped = {};
     processedEvents.forEach(e => {
         if (!grouped[e.event_type]) grouped[e.event_type] = {};
         if (!grouped[e.event_type][e.city]) grouped[e.event_type][e.city] = [];
         grouped[e.event_type][e.city].push(e);
     });
+
+    // Agrupar apenas por Tipo (Para Impressão Clássica)
+    const printGrouped = {};
+    processedEvents.forEach(e => {
+        if (!printGrouped[e.event_type]) printGrouped[e.event_type] = [];
+        printGrouped[e.event_type].push(e);
+    });
+    // Ordenar itens da impressão por data
+    Object.keys(printGrouped).forEach(key => {
+        printGrouped[key].sort((a, b) => a.nextDateObj - b.nextDateObj);
+    });
+
+    const getMonthName = (dateStr) => {
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return '';
+        const m = parseInt(parts[1], 10);
+        const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return months[m - 1] || '';
+    };
+
+    // Utilizar todos os informativos ativos vindos da API
+    const activeNews = news || [];
+
+    const publicNews = activeNews.filter(n => n.target_audience === 'Público' || !n.target_audience);
+    const ministerialNews = activeNews.filter(n => n.target_audience === 'Ministerial');
 
     const handlePrint = () => {
         window.print();
@@ -200,10 +229,87 @@ export default function AgendaPage() {
                 Visão consolidada de Ensaios, Reuniões e Eventos (exceto Cultos e GEM) agrupada por cidade e ordenada pela data mais próxima.
             </p>
 
-            <div className="print-header" style={{ display: 'none', textAlign: 'center', marginBottom: '30px' }}>
-                <h2>Agenda Regional</h2>
-                <p>Regional SAI - Santa Isabel, Arujá e Igaratá</p>
-                <hr style={{ marginTop: '10px', borderColor: '#eee' }} />
+            <div id="print-only-table" className="print-only" style={{ display: 'none' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }} className="classic-print-header">
+                    <div style={{ flex: 1, textAlign: 'center' }}>
+                        <h2 style={{ fontSize: '18px', margin: '0', textTransform: 'uppercase' }}>Congregação Cristã no Brasil</h2>
+                        <h3 style={{ fontSize: '15px', margin: '4px 0', fontWeight: 'normal' }}>Administração de Santa Isabel/SP</h3>
+                        <p style={{ margin: '0', fontWeight: 'bold' }}>Lista de Batismos e Diversos</p>
+                        <p style={{ margin: '4px 0 0 0' }}>{getMonthName(new Date().toLocaleDateString('pt-BR'))} de {new Date().getFullYear()}</p>
+                    </div>
+                </div>
+
+                {Object.keys(printGrouped).sort().map(type => (
+                    <div key={type} style={{ marginBottom: '16px', pageBreakInside: 'avoid' }}>
+                        <div style={{ background: '#e0e0e0', border: '2px solid #000', textAlign: 'center', padding: '4px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '14px', marginBottom: '6px' }}>
+                            {type} {type.toUpperCase().includes('AVISO') && type.toUpperCase() !== 'AVISOS' ? '(SOMENTE PARA O MINISTÉRIO)' : ''}
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <tbody>
+                                {printGrouped[type].map(e => (
+                                    <tr key={e.id || e._tempId} style={{ borderBottom: '1px solid #ccc' }}>
+                                        <td style={{ width: '50px', padding: '4px 2px', verticalAlign: 'top' }}>{e.nextDateLabel.substring(0, 5)}</td>
+                                        <td style={{ width: '40px', padding: '4px 2px', verticalAlign: 'top' }}>{e.day_of_week.substring(0, 3)}</td>
+                                        <td style={{ width: '50px', padding: '4px 2px', verticalAlign: 'top' }}>{e.time}</td>
+                                        <td style={{ padding: '4px 2px', verticalAlign: 'top' }}>
+                                            {e.city} - {e.locationName} {e.instructions ? `- ${e.instructions}` : ''}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ))}
+
+                {publicNews.length > 0 && (
+                    <div style={{ marginBottom: '16px', pageBreakInside: 'avoid' }}>
+                        <div style={{ background: '#e0e0e0', border: '2px solid #000', textAlign: 'center', padding: '4px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '14px', marginBottom: '6px' }}>
+                            AVISOS
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <tbody>
+                                {publicNews.map(n => {
+                                    return (
+                                        <tr key={n.id} style={{ borderBottom: '1px solid #ccc' }}>
+                                            <td style={{ width: '60px', padding: '8px 2px', verticalAlign: 'top' }}>
+                                                {n.date || '--/--'}
+                                            </td>
+                                            <td style={{ padding: '8px 2px', verticalAlign: 'top' }}>
+                                                <strong>{n.title}</strong>
+                                                <div style={{ marginTop: '4px' }}>{n.content}</div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+
+                {ministerialNews.length > 0 && (
+                    <div style={{ marginBottom: '16px', pageBreakInside: 'avoid' }}>
+                        <div style={{ background: '#e0e0e0', border: '2px solid #000', textAlign: 'center', padding: '4px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '14px', marginBottom: '6px' }}>
+                            AVISOS ( SOMENTE PARA O MINISTÉRIO )
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <tbody>
+                                {ministerialNews.map(n => {
+                                    return (
+                                        <tr key={n.id} style={{ borderBottom: '1px solid #ccc' }}>
+                                            <td style={{ width: '60px', padding: '8px 2px', verticalAlign: 'top' }}>
+                                                {n.date || '--/--'}
+                                            </td>
+                                            <td style={{ padding: '8px 2px', verticalAlign: 'top' }}>
+                                                <strong>{n.title}</strong>
+                                                <div style={{ marginTop: '4px' }}>{n.content}</div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {Object.keys(grouped).length === 0 ? (
