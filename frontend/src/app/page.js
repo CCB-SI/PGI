@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import UpcomingEvents from '@/components/UpcomingEvents';
 
 const quickAccessCards = [
   {
@@ -11,7 +13,7 @@ const quickAccessCards = [
       </svg>
     ),
     title: 'Comuns',
-    description: 'Localização via GPS, horários de cultos e dias de atendimento da secretaria local.',
+    description: 'Aqui encontra-se o endereço, dias de culto, ensaios e toda agenda relacionada a Comum congregação.',
     href: '/locais',
   },
   {
@@ -23,8 +25,8 @@ const quickAccessCards = [
         <line x1="3" y1="10" x2="21" y2="10" />
       </svg>
     ),
-    title: 'Calendário Musical',
-    description: 'Datas de reuniões ministeriais, batismos e eventos musicais da Regional SAI.',
+    title: 'Calendário Regional',
+    description: 'Agendas de todos os Eventos da nossa Regional SAI',
     href: '/eventos',
   },
   {
@@ -34,8 +36,8 @@ const quickAccessCards = [
       </svg>
     ),
     title: 'Material de Apoio',
-    description: 'Formulário para dúvidas técnicas, reporte de erros ou solicitação de documentos.',
-    href: '/contato',
+    description: 'Formulários e documentos oficiais para todos os setores: Administração, Musical, DARPE, EBI etc.',
+    href: '/downloads',
   },
   {
     icon: (
@@ -55,6 +57,7 @@ import { fetchNews } from '@/services/api';
 const INITIAL_NEWS_COUNT = 5;
 
 export default function Home() {
+  const { user } = useAuth();
   const [allNews, setAllNews] = useState([]);
   const [visibleCount, setVisibleCount] = useState(INITIAL_NEWS_COUNT);
 
@@ -62,19 +65,24 @@ export default function Home() {
     fetchNews().then(setAllNews).catch(console.error);
   }, []);
 
-  const visibleNews = allNews.slice(0, visibleCount);
-  const hasMore = visibleCount < allNews.length;
+  const filteredNews = allNews.filter(n => {
+    if (!user && n.target_audience === 'Ministerial') return false;
+    return true;
+  });
+
+  const visibleNews = filteredNews.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredNews.length;
 
   return (
     <div>
       {/* === Hero Banner === */}
       <section className="hero-banner">
         <div className="hero-decoration"></div>
-        <h1>Secretaria Musical</h1>
-        <p className="hero-subtitle">Regional SAI – Santa Isabel, Arujá e Igaratá</p>
-        <p>Centralização de informações técnicas, calendário de ensaios e suporte aos músicos, instrutores e examinadoras.</p>
+        <h1>PGRI Santa Isabel</h1>
+        <p className="hero-subtitle">Plataforma de Gestão Regional Integrada</p>
+        <p>Gestão Integrada SAI: A plataforma central para calendários ministeriais, suporte musical e comunicação administrativa das cidades de Santa Isabel, Arujá e Igaratá.</p>
         <Link href="/eventos" className="cta-button">
-          Ver Agenda de Ensaios
+          Agenda Regional
         </Link>
       </section>
 
@@ -93,6 +101,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* === Próximos Eventos Widget === */}
+      <UpcomingEvents />
+
       {/* === Mural de Informativos === */}
       <section className="news-section">
         <h2 className="section-title">Mural de Informativos</h2>
@@ -110,7 +121,12 @@ export default function Home() {
                   <span className="news-date">{news.date}</span>
                 </div>
                 <div className="news-card-body">
-                  <h3>{news.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <h3 style={{ margin: 0 }}>{news.title}</h3>
+                    {news.target_audience === 'Ministerial' && (
+                      <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒</span>
+                    )}
+                  </div>
                   <p style={{ whiteSpace: 'pre-line' }}>{news.content}</p>
                 </div>
               </article>

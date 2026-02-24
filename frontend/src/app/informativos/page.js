@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import NewsModal from '@/components/NewsModal';
+import Badge from '@/components/Badge';
 import { fetchNews, createNews, updateNews, deleteNews } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -31,9 +32,14 @@ export default function InformativosPage() {
 
     const tags = [...new Set(allInformativos.map(n => n.tag))];
 
+    const filteredByAudience = allInformativos.filter(n => {
+        if (!user && n.target_audience === 'Ministerial') return false;
+        return true;
+    });
+
     const filtered = filterTag
-        ? allInformativos.filter(n => n.tag === filterTag)
-        : allInformativos;
+        ? filteredByAudience.filter(n => n.tag === filterTag)
+        : filteredByAudience;
 
     const visible = filtered.slice(0, visibleCount);
     const hasMore = visibleCount < filtered.length;
@@ -69,7 +75,7 @@ export default function InformativosPage() {
         <div className="informativos-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Informativos</h1>
-                {user && (
+                {user?.role === 'admin' && (
                     <button className="btn-primary" onClick={handleNew}>
                         + Novo Informativo
                     </button>
@@ -77,7 +83,7 @@ export default function InformativosPage() {
             </div>
 
             <p style={{ marginBottom: '24px', color: 'var(--text-secondary)' }}>
-                Acompanhe os comunicados, avisos e atualizações da Secretaria Musical.
+                Acompanhe os comunicados, avisos e atualizações da PGRI Santa Isabel.
             </p>
 
             {/* Filter by tag */}
@@ -135,21 +141,22 @@ export default function InformativosPage() {
                             className={`news-card animate-in stagger-${(index % 8) + 1}`}
                         >
                             <div className="news-card-header">
-                                <span className="news-tag" style={{ backgroundColor: news.tag_color }}>
-                                    {news.tag}
-                                </span>
+                                <Badge text={news.tag} fallbackColor={news.tag_color} dot />
                                 <span className="news-date">{news.date}</span>
                             </div>
                             <div className="news-card-body">
-                                <h3>{news.title}</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                    <h3 style={{ margin: 0 }}>{news.title}</h3>
+                                    {news.target_audience === 'Ministerial' && (
+                                        <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒 Ministerial</span>
+                                    )}
+                                </div>
                                 <p style={{ whiteSpace: 'pre-line' }}>{news.content}</p>
 
-                                {user && (
+                                {user?.role === 'admin' && (
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
                                         <button className="btn-small btn-small-edit" onClick={() => handleEdit(news)}>Editar</button>
-                                        {user.role === 'admin' && (
-                                            <button className="btn-small btn-small-danger" onClick={() => handleDelete(news.id)}>Excluir</button>
-                                        )}
+                                        <button className="btn-small btn-small-danger" onClick={() => handleDelete(news.id)}>Excluir</button>
                                     </div>
                                 )}
                             </div>

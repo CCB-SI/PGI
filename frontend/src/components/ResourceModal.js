@@ -8,6 +8,7 @@ export default function ResourceModal({ resource, onClose, onSave, categories = 
     const [isExternal, setIsExternal] = useState(resource?.is_external || false);
     const [externalUrl, setExternalUrl] = useState(resource?.external_url || '');
     const [file, setFile] = useState(null);
+    const [targetAudience, setTargetAudience] = useState(resource?.target_audience || 'Público');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -30,6 +31,7 @@ export default function ResourceModal({ resource, onClose, onSave, categories = 
         formData.append('title', title);
         formData.append('description', description);
         formData.append('is_external', isExternal);
+        formData.append('target_audience', targetAudience);
 
         if (categoryId) formData.append('category_id', categoryId);
 
@@ -94,6 +96,18 @@ export default function ResourceModal({ resource, onClose, onSave, categories = 
                             {categories.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="form-label">Público-Alvo</label>
+                        <select
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                            className="form-input"
+                        >
+                            <option value="Público">Público Geral</option>
+                            <option value="Ministerial">Exclusivo Ministerial</option>
                         </select>
                     </div>
 

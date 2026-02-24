@@ -25,6 +25,7 @@ class ResourceBase(BaseModel):
     category: str = "Geral"
     is_external: bool = False
     external_url: Optional[str] = None
+    target_audience: str = "Público"
 
 class ResourceCreate(ResourceBase):
     pass

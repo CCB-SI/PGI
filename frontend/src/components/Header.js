@@ -17,7 +17,7 @@ export default function Header() {
       <div className="container header-content">
         <Link href="/" className="logo">
           <span className="logo-icon">♪</span>
-          Secretaria Musical
+          PGRI Santa Isabel
         </Link>
 
         <button
@@ -42,11 +42,28 @@ export default function Header() {
               </Link>
             </li>
             {user && (
-              <li>
-                <Link href="/ministerio" onClick={() => setMenuOpen(false)} className={isActive('/ministerio') ? 'nav-active' : ''}>
-                  Ministério
-                </Link>
-              </li>
+              <>
+                <li className="nav-dropdown">
+                  <button className={`nav-dropdown-btn ${['/ministerial', '/documentos', '/acessos'].includes(pathname) ? 'nav-active' : ''}`}>
+                    Administrativo
+                  </button>
+                  <div className="nav-dropdown-content">
+                    <Link href="/ministerial" onClick={() => setMenuOpen(false)}>
+                      Ministério
+                    </Link>
+                    {['admin', 'editor'].includes(user.role) && (
+                      <Link href="/documentos" onClick={() => setMenuOpen(false)}>
+                        Documentos
+                      </Link>
+                    )}
+                    {user.role === 'admin' && (
+                      <Link href="/acessos" onClick={() => setMenuOpen(false)}>
+                        Acessos
+                      </Link>
+                    )}
+                  </div>
+                </li>
+              </>
             )}
             <li>
               <Link href="/informativos" onClick={() => setMenuOpen(false)} className={isActive('/informativos') ? 'nav-active' : ''}>

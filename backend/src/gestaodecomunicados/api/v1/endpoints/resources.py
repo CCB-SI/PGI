@@ -62,8 +62,18 @@ def delete_category(
 # --- Resources ---
 
 @router.get("/resources", response_model=List[resource_schema.Resource])
-def read_resources(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    resources = db.query(Resource).order_by(Resource.created_at.desc()).offset(skip).limit(limit).all()
+def read_resources(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db),
+    current_user: Optional[auth.models.User] = Depends(auth.get_current_user_optional)
+):
+    query = db.query(Resource)
+    # Se não estiver logado, mostra apenas Público
+    if not current_user:
+        query = query.filter(Resource.target_audience == "Público")
+    
+    resources = query.order_by(Resource.created_at.desc()).offset(skip).limit(limit).all()
     return resources
 
 @router.post("/resources", response_model=resource_schema.Resource, status_code=status.HTTP_201_CREATED)
@@ -73,6 +83,7 @@ async def create_resource(
     category_id: Optional[int] = Form(None),
     is_external: bool = Form(False),
     external_url: Optional[str] = Form(None),
+    target_audience: str = Form("Público"),
     file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: auth.models.User = Depends(auth.require_editor_or_admin)
@@ -111,7 +122,8 @@ async def create_resource(
         category_id=category_id,
         category="Geral", # Default label
         is_external=is_external,
-        external_url=external_url if is_external else None
+        external_url=external_url if is_external else None,
+        target_audience=target_audience
     )
     db.add(db_resource)
     db.commit()

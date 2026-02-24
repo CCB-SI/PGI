@@ -1,4 +1,5 @@
-# Gestão de Secretaria Musical
+# PGRI Santa Isabel
+## Plataforma de Gestão Regional Integrada
 
 Um sistema web completo para a centralização de informações técnicas, calendários de ensaios e suporte aos músicos da Regional SAI (Santa Isabel, Arujá e Igaratá).
 

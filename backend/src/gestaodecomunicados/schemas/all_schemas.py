@@ -90,8 +90,11 @@ class EventBase(BaseModel):
     start_time: datetime
     end_time: Optional[datetime] = None
     image_url: Optional[str] = None
+    category: str = "Musical"
     category_id: int
     location_id: Optional[int] = None
+    target_audience: str = "Público"
+    instructions: Optional[str] = None
 
 class EventCreate(EventBase):
     pass
@@ -99,7 +102,7 @@ class EventCreate(EventBase):
 class Event(EventBase):
     id: int
     created_at: datetime
-    category: Optional[Category] = None
+    category_obj: Optional[Category] = None
     location: Optional[Location] = None
 
     class Config:
@@ -112,6 +115,7 @@ class NewsBase(BaseModel):
     date: str
     title: str
     content: str
+    target_audience: str = "Público"
 
 class NewsCreate(NewsBase):
     pass

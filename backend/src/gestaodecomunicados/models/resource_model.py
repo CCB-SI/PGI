@@ -33,5 +33,6 @@ class Resource(Base):
     
     is_external = Column(Boolean, default=False)
     external_url = Column(String, nullable=True)
+    target_audience = Column(String, default="Público") # Público ou Ministerial
     
     created_at = Column(DateTime, default=datetime.utcnow)

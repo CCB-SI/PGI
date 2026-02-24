@@ -10,9 +10,11 @@ from . import auth
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 
-from .endpoints import resources, contact
+from .endpoints import resources, contact, users, documents
 api_router.include_router(resources.router, tags=["downloads"])
 api_router.include_router(contact.router, tags=["contact"])
+api_router.include_router(users.router)
+api_router.include_router(documents.router)
 
 # --- Events Endpoints ---
 from typing import Optional
@@ -25,15 +27,22 @@ def read_events(
     category_id: Optional[int] = None,
     city: Optional[str] = None,
     start_date: Optional[datetime] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_current_user_optional)
 ):
     query = db.query(models.Event)
+    
+    # Se não estiver logado, mostra apenas Público
+    if not current_user:
+        query = query.filter(models.Event.target_audience == "Público")
+    
     if category_id:
         query = query.filter(models.Event.category_id == category_id)
     if city:
         query = query.join(models.Location).filter(models.Location.city.ilike(f"%{city}%"))
     if start_date:
         query = query.filter(models.Event.start_time >= start_date)
+    
     events = query.order_by(models.Event.start_time.asc()).offset(skip).limit(limit).all()
     return events
 
@@ -300,8 +309,19 @@ async def upload_location_photo(
     return db_location
 # --- News (Informativos) Endpoints ---
 @api_router.get("/news", response_model=List[schemas.News])
-def read_news(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(models.News).order_by(models.News.id.desc()).offset(skip).limit(limit).all()
+def read_news(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_current_user_optional)
+):
+    query = db.query(models.News)
+    
+    # Se não estiver logado, mostra apenas Público
+    if not current_user:
+        query = query.filter(models.News.target_audience == "Público")
+        
+    return query.order_by(models.News.id.desc()).offset(skip).limit(limit).all()
 
 @api_router.post("/news", response_model=schemas.News, status_code=status.HTTP_201_CREATED)
 def create_news(

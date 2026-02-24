@@ -5,8 +5,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 
 export const metadata = {
-  title: 'Secretaria Musical – Regional SAI',
-  description: 'Portal da Secretaria Musical da Regional SAI (Santa Isabel, Arujá e Igaratá). Informações técnicas, calendário de ensaios e suporte aos músicos, instrutores e examinadoras.',
+  title: 'PGRI Santa Isabel – Gestão Regional Integrada',
+  description: 'PGRI - Plataforma de Gestão Regional Integrada da Regional SAI (Santa Isabel, Arujá e Igaratá). Informações técnicas, calendário de ensaios e suporte aos músicos, instrutores e examinadoras.',
 };
 
 export default function RootLayout({ children }) {

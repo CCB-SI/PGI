@@ -1,6 +1,6 @@
 import { getPhotoUrl } from '@/services/api';
 
-export default function ResourceCard({ id, title, description, file_type, category, file_url, user, onDelete }) {
+export default function ResourceCard({ id, title, description, file_type, category, file_url, user, target_audience, onDelete }) {
     // Simple icon selection based on type
     const getIcon = (type) => {
         const t = (type || '').toLowerCase();
@@ -26,7 +26,10 @@ export default function ResourceCard({ id, title, description, file_type, catego
                         <span style={{ marginRight: '10px', background: '#eee', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem' }}>
                             {isLink ? 'Link' : file_type}
                         </span>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--primary-color)' }}>{category}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--primary-color)', marginRight: '10px' }}>{category}</span>
+                        {target_audience === 'Ministerial' && (
+                            <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒 Ministerial</span>
+                        )}
                     </div>
                 </div>
             </div>

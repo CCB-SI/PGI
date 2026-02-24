@@ -5,8 +5,8 @@ export default function Footer() {
         <footer className="main-footer">
             <div className="container footer-content">
                 <div className="footer-section">
-                    <h3>Secretaria Musical</h3>
-                    <p>Regional SAI – Santa Isabel, Arujá e Igaratá. Centralização de informações técnicas, calendários de ensaios e suporte aos músicos.</p>
+                    <h3>PGRI Santa Isabel</h3>
+                    <p>Plataforma de Gestão Regional Integrada – Santa Isabel, Arujá e Igaratá. Centralização de informações técnicas, calendários de ensaios e suporte aos músicos.</p>
                 </div>
                 <div className="footer-section">
                     <h3>Links Rápidos</h3>
@@ -26,7 +26,7 @@ export default function Footer() {
                 </div>
             </div>
             <div className="container footer-bottom">
-                &copy; {new Date().getFullYear()} Secretaria Musical – Regional SAI. Todos os direitos reservados.
+                &copy; {new Date().getFullYear()} PGRI Santa Isabel – Gestão Regional Integrada. Todos os direitos reservados.
             </div>
         </footer>
     );

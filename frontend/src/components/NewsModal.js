@@ -19,6 +19,7 @@ export default function NewsModal({ news, onSave, onClose }) {
         tag: DEFAULT_TAG,
         tag_color: TAG_COLORS[DEFAULT_TAG],
         date: new Date().toLocaleDateString('pt-BR'),
+        target_audience: 'Público',
     };
 
     const [form, setForm] = useState(emptyForm);
@@ -32,6 +33,7 @@ export default function NewsModal({ news, onSave, onClose }) {
                 tag: news.tag || DEFAULT_TAG,
                 tag_color: news.tag_color || TAG_COLORS[news.tag || DEFAULT_TAG] || '#2196f3',
                 date: news.date || new Date().toLocaleDateString('pt-BR'),
+                target_audience: news.target_audience || 'Público',
             });
         } else {
             setForm(emptyForm);
@@ -121,6 +123,14 @@ export default function NewsModal({ news, onSave, onClose }) {
                                 rows="5"
                                 placeholder="Descreva o informativo..."
                             />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Público-Alvo</label>
+                            <select name="target_audience" value={form.target_audience} onChange={handleChange}>
+                                <option value="Público">Público Geral</option>
+                                <option value="Ministerial">Exclusivo Ministerial</option>
+                            </select>
                         </div>
                     </div>
 

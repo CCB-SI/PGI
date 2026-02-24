@@ -33,13 +33,36 @@ def migrate_db():
             if 'external_url' not in columns:
                 print("Migrating database: adding external_url to resources...")
                 cursor.execute("ALTER TABLE resources ADD COLUMN external_url TEXT")
+            if 'target_audience' not in columns:
+                print("Migrating database: adding target_audience to resources...")
+                cursor.execute("ALTER TABLE resources ADD COLUMN target_audience TEXT DEFAULT 'Público'")
             
+            # Migration for news
+            cursor.execute("PRAGMA table_info(news)")
+            news_columns = [row[1] for row in cursor.fetchall()]
+            if 'target_audience' not in news_columns:
+                print("Migrating database: adding target_audience to news...")
+                cursor.execute("ALTER TABLE news ADD COLUMN target_audience TEXT DEFAULT 'Público'")
+
             # Migration for locations
             cursor.execute("PRAGMA table_info(locations)")
             loc_columns = [row[1] for row in cursor.fetchall()]
             if 'waze_url' not in loc_columns:
                 print("Migrating database: adding waze_url to locations...")
                 cursor.execute("ALTER TABLE locations ADD COLUMN waze_url TEXT")
+
+            # Migration for events
+            cursor.execute("PRAGMA table_info(events)")
+            evt_columns = [row[1] for row in cursor.fetchall()]
+            if 'target_audience' not in evt_columns:
+                print("Migrating database: adding target_audience to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN target_audience TEXT DEFAULT 'Público'")
+            if 'category' not in evt_columns:
+                print("Migrating database: adding category to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN category TEXT DEFAULT 'Musical'")
+            if 'instructions' not in evt_columns:
+                print("Migrating database: adding instructions to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN instructions TEXT")
 
             conn.commit()
             conn.close()

@@ -115,7 +115,7 @@ export default function LocaisPage() {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Comuns</h1>
-                {user && (
+                {user?.role === 'admin' && (
                     <button className="btn-primary" onClick={handleNewClick}>
                         + Cadastrar Comum
                     </button>
@@ -150,7 +150,7 @@ export default function LocaisPage() {
                     <p style={{ fontSize: '1.1rem' }}>
                         {searchTerm ? `Nenhum comum encontrado para "${searchTerm}".` : 'Nenhum comum cadastrado ainda.'}
                     </p>
-                    {!searchTerm && user && (
+                    {!searchTerm && user?.role === 'admin' && (
                         <button className="btn-primary" onClick={handleNewClick} style={{ marginTop: '16px' }}>
                             Cadastrar o primeiro Comum
                         </button>

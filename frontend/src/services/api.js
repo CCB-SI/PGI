@@ -15,7 +15,10 @@ export async function fetchEvents(filters = {}) {
         if (filters.category_id) params.append('category_id', filters.category_id);
         if (filters.city) params.append('city', filters.city);
         const queryString = params.toString() ? `?${params.toString()}` : '';
-        const res = await fetch(`${API_URL}/events${queryString}`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/events${queryString}`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch events');
         return res.json();
     } catch (error) {
@@ -26,7 +29,10 @@ export async function fetchEvents(filters = {}) {
 
 export async function fetchCategories() {
     try {
-        const res = await fetch(`${API_URL}/categories`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/categories`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch categories');
         return res.json();
     } catch (error) {
@@ -38,7 +44,10 @@ export async function fetchCategories() {
 export async function fetchLocations(city = '') {
     try {
         const params = city ? `?city=${encodeURIComponent(city)}` : '';
-        const res = await fetch(`${API_URL}/locations${params}`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/locations${params}`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch locations');
         return res.json();
     } catch (error) {
@@ -49,7 +58,10 @@ export async function fetchLocations(city = '') {
 
 export async function fetchResources() {
     try {
-        const res = await fetch(`${API_URL}/resources`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/resources`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch resources');
         return res.json();
     } catch (error) {
@@ -80,7 +92,10 @@ export async function createResource(formData) {
 // --- Download Categories CRUD ---
 export async function fetchDownloadCategories() {
     try {
-        const res = await fetch(`${API_URL}/download_categories`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/download_categories`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch categories');
         return res.json();
     } catch (error) {
@@ -121,7 +136,10 @@ export async function deleteDownloadCategory(id) {
 // --- News (Informativos) CRUD ---
 export async function fetchNews(skip = 0, limit = 100) {
     try {
-        const res = await fetch(`${API_URL}/news?skip=${skip}&limit=${limit}`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/news?skip=${skip}&limit=${limit}`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Failed to fetch news');
         return res.json();
     } catch (error) {
@@ -225,7 +243,10 @@ export async function deleteSchedule(scheduleId) {
 export async function fetchMembers(role = '') {
     try {
         const params = role ? `?role=${encodeURIComponent(role)}` : '';
-        const res = await fetch(`${API_URL}/members${params}`, { cache: 'no-store' });
+        const res = await fetch(`${API_URL}/members${params}`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
         if (!res.ok) throw new Error('Falha ao buscar irmãos');
         return res.json();
     } catch (error) {
@@ -277,7 +298,50 @@ export async function unlinkMemberFromLocation(locationId, memberId) {
         method: 'DELETE',
         headers: { ...authHeaders() }
     });
-    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao desvincular'); }
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'Erro ao desvincular irmão'); }
+    return true;
+}
+
+// --- User Management (Admin Only) ---
+export async function fetchUsers() {
+    try {
+        const res = await fetch(`${API_URL}/users/`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
+        if (!res.ok) throw new Error('Falha ao buscar usuários');
+        return await res.json();
+    } catch (error) {
+        console.error('Erro na requisição fetchUsers:', error);
+        throw error;
+    }
+}
+
+export async function createUser(data) {
+    const res = await fetch(`${API_URL}/users/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders()
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao criar usuário');
+    }
+    return res.json();
+}
+
+export async function deleteUser(id) {
+    const res = await fetch(`${API_URL}/users/${id}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() }
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao excluir usuário');
+    }
     return true;
 }
 
@@ -286,6 +350,39 @@ export function getPhotoUrl(photoPath) {
     if (!photoPath) return null;
     if (photoPath.startsWith('http')) return photoPath;
     return `${BACKEND_URL}${photoPath}`;
+}
+
+// --- Documents (PDF) ---
+export async function fetchDocumentTemplates() {
+    try {
+        const res = await fetch(`${API_URL}/documents/templates`, {
+            cache: 'no-store',
+            headers: { ...authHeaders() }
+        });
+        if (!res.ok) throw new Error('Falha ao buscar modelos de documento');
+        return res.json();
+    } catch (error) {
+        console.error("Error fetching document templates:", error);
+        return [];
+    }
+}
+
+export async function generateDocumentPDF(templateId, memberId) {
+    const res = await fetch(`${API_URL}/documents/generate/${templateId}?member_id=${memberId}`, {
+        method: 'POST',
+        headers: { ...authHeaders() }
+    });
+
+    if (!res.ok) {
+        let errMsg = 'Erro ao gerar documento';
+        try {
+            const err = await res.json();
+            errMsg = err.detail || errMsg;
+        } catch (e) { }
+        throw new Error(errMsg);
+    }
+
+    return await res.blob();
 }
 
 // --- Constantes pré-definidas ---
@@ -334,3 +431,4 @@ export const RECURRENCES = [
     'Anual',
     'Data Específica',
 ];
+// Force Turbopack reload

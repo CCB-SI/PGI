@@ -21,7 +21,7 @@ class Category(Base):
     description = Column(String, nullable=True)
     color = Column(String, default="#000000")
 
-    events = relationship("Event", back_populates="category")
+    events = relationship("Event", back_populates="category_obj")
 
 class MinistryMember(Base):
     """Irmãos do Ministério – cadastro prévio"""
@@ -68,6 +68,7 @@ class News(Base):
     date = Column(String)                     # Data exibida no formato 'dd/mm/yyyy'
     title = Column(String, nullable=False)    # Título do aviso
     content = Column(String)                  # Conteúdo descritivo
+    target_audience = Column(String, default="Público") # Público ou Ministerial
 
 class User(Base):
     """Usuários do Sistema"""
@@ -105,14 +106,43 @@ class Event(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     image_url = Column(String, nullable=True)
+    category = Column(String, index=True)               # Nome da categoria (Batismo, Santa Ceia, etc.)
+    target_audience = Column(String, default="Público") # Público ou Ministerial
+    instructions = Column(Text, nullable=True)          # Instruções especiais (ex: oração)
 
     category_id = Column(Integer, ForeignKey("categories.id"))
-    category = relationship("Category", back_populates="events")
+    category_obj = relationship("Category", back_populates="events")
 
     location_id = Column(Integer, ForeignKey("locations.id"), nullable=True)
     location = relationship("Location", back_populates="events")
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User")
+
+class DocumentTemplate(Base):
+    """Template PDF fields mapped to Database properties"""
+    __tablename__ = "document_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)          # Ex: M02 - Pedido de Avaliação
+    filename = Column(String)                  # Ex: m02_v1.pdf
+    version = Column(String, default="1.0")    # Versão do template (LGPD)
+    schema_mapping = Column(Text)              # JSON string mapped fields
+
+    issuances = relationship("DocumentIssuance", back_populates="template", cascade="all, delete-orphan")
+
+class DocumentIssuance(Base):
+    """Log de emissões geradas do documento"""
+    __tablename__ = "document_issuances"
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey("document_templates.id"), nullable=False)
+    issuer_id = Column(Integer, ForeignKey("users.id"), nullable=False)       # Quem emitiu
+    member_id = Column(Integer, ForeignKey("ministry_members.id"), nullable=False) # Para quem
+    issued_at = Column(DateTime, default=datetime.utcnow)
+
+    template = relationship("DocumentTemplate", back_populates="issuances")
+    issuer = relationship("User")
+    member = relationship("MinistryMember")
 
 from .resource_model import Resource
