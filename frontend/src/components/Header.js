@@ -1,107 +1,99 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import '@/app/globals.css';
+import '@/app/stitch-tailwind.css';
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
-  const pathname = usePathname();
+  const dropdownRef = useRef(null);
 
-  const isActive = (path) => pathname === path;
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <header className="main-header">
-      <div className="container header-content">
-        <Link href="/" className="logo">
-          PGRI Santa Isabel
+    <header className="stitch-header">
+      <div className="stitch-header-left">
+        <Link href="/" className="stitch-icon-btn">
+          <span className="material-symbols-outlined text-2xl">home</span>
         </Link>
+      </div>
 
+      <h2 className="stitch-header-title">
+        PGRI Santa Isabel
+      </h2>
+
+      <div className="stitch-header-right" ref={dropdownRef}>
         <button
-          className="menu-toggle"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Abrir menu de navegação"
-          aria-expanded={menuOpen}
+          onClick={() => setDropdownOpen(!dropdownOpen)}
+          className="stitch-icon-btn stitch-icon-btn-primary"
+          aria-expanded={dropdownOpen}
+          aria-haspopup="true"
         >
-          <span className={`hamburger ${menuOpen ? 'active' : ''}`}></span>
+          <span className="material-symbols-outlined">account_circle</span>
         </button>
 
-        <nav className={`main-nav ${menuOpen ? 'nav-open' : ''}`}>
-          <ul>
-            <li>
-              <Link href="/" onClick={() => setMenuOpen(false)} className={isActive('/') ? 'nav-active' : ''}>
-                Início
-              </Link>
-            </li>
-            <li>
-              <Link href="/locais" onClick={() => setMenuOpen(false)} className={isActive('/locais') ? 'nav-active' : ''}>
-                Comuns
-              </Link>
-            </li>
-            {user && (
-              <>
-                <li className="nav-dropdown">
-                  <button className={`nav-dropdown-btn ${['/ministerial', '/documentos', '/acessos'].includes(pathname) ? 'nav-active' : ''}`}>
-                    Administrativo
-                  </button>
-                  <div className="nav-dropdown-content">
-                    <Link href="/ministerial" onClick={() => setMenuOpen(false)}>
-                      Ministério
-                    </Link>
-                    {['admin', 'editor'].includes(user.role) && (
-                      <Link href="/documentos" onClick={() => setMenuOpen(false)}>
-                        Documentos
-                      </Link>
-                    )}
-                    {user.role === 'admin' && (
-                      <Link href="/acessos" onClick={() => setMenuOpen(false)}>
-                        Acessos
-                      </Link>
-                    )}
-                  </div>
-                </li>
-              </>
-            )}
-            <li>
-              <Link href="/informativos" onClick={() => setMenuOpen(false)} className={isActive('/informativos') ? 'nav-active' : ''}>
-                Informativos
-              </Link>
-            </li>
-            <li>
-              <Link href="/downloads" onClick={() => setMenuOpen(false)} className={isActive('/downloads') ? 'nav-active' : ''}>
-                Downloads
-              </Link>
-            </li>
-            <li>
-              <Link href="/contato" onClick={() => setMenuOpen(false)} className={isActive('/contato') ? 'nav-active' : ''}>
-                Contato
-              </Link>
-            </li>
+        {dropdownOpen && (
+          <div className="stitch-dropdown">
             {user ? (
               <>
-                <li>
-                  <button
-                    onClick={logout}
-                    style={{ background: 'transparent', border: 'none', color: '#e53935', fontWeight: 'bold', cursor: 'pointer', padding: '0 10px' }}
-                  >
-                    Sair
+                <div className="stitch-dropdown-header">
+                  <p className="stitch-dropdown-name">{user.username || 'Usuário'}</p>
+                  <p className="stitch-dropdown-role">{user.role}</p>
+                </div>
+
+                <Link href="/ministerial" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                  <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+                  Ministério
+                </Link>
+
+                {['admin', 'editor'].includes(user.role) && (
+                  <Link href="/documentos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                    <span className="material-symbols-outlined text-[18px]">description</span>
+                    Documentos
+                  </Link>
+                )}
+
+                {user.role === 'admin' && (
+                  <Link href="/acessos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                    <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
+                    Acessos
+                  </Link>
+                )}
+
+                <div className="stitch-dropdown-divider">
+                  <button onClick={() => { logout(); setDropdownOpen(false); }} className="stitch-dropdown-item stitch-dropdown-item-danger">
+                    <span className="material-symbols-outlined text-[18px]">logout</span>
+                    Sair da Conta
                   </button>
-                </li>
+                </div>
               </>
             ) : (
-              <li>
-                <Link
-                  href="/login"
-                  onClick={() => setMenuOpen(false)}
-                  style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>
-                  Área Restrita
+              <>
+                <Link href="/login" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                  <span className="material-symbols-outlined text-[18px]">login</span>
+                  Fazer Login
                 </Link>
-              </li>
+              </>
             )}
-          </ul>
-        </nav>
+            <div className="stitch-dropdown-divider">
+              <Link href="/contato" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                <span className="material-symbols-outlined text-[18px]">help</span>
+                Contato / Suporte
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );

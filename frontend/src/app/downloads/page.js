@@ -6,6 +6,7 @@ import CategoryManagementModal from '@/components/CategoryManagementModal';
 import { fetchResources, fetchDownloadCategories, createResource, deleteResource } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
+import { FolderOpen, Lock } from 'lucide-react';
 
 export default function DownloadsPage() {
     const { user } = useAuth();
@@ -52,7 +53,7 @@ export default function DownloadsPage() {
                 const month = date.toLocaleString('pt-BR', { month: 'long' });
                 const monthNumber = date.getMonth();
 
-                const groupName = `📂 ${year} > ${month.charAt(0).toUpperCase() + month.slice(1)}`;
+                const groupName = `${year} > ${month.charAt(0).toUpperCase() + month.slice(1)}`;
                 const sortKey = `${year}-${monthNumber.toString().padStart(2, '0')}`;
 
                 if (!groups[sortKey]) groups[sortKey] = { name: groupName, items: [], sortKey };
@@ -117,7 +118,7 @@ export default function DownloadsPage() {
                             className="btn-secondary"
                             onClick={(e) => { e.stopPropagation(); setIsCategoryModalOpen(true); }}
                         >
-                            📂 Categorias
+                            <FolderOpen size={16} /> Categorias
                         </button>
                         <button
                             type="button"
@@ -161,7 +162,7 @@ export default function DownloadsPage() {
                             cursor: 'pointer'
                         }}
                     >
-                        🔐 Ministerial
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Lock size={16} /> Ministerial</span>
                     </button>
                 )}
             </div>
@@ -178,8 +179,8 @@ export default function DownloadsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
                     {filteredResources.map(([catName, items], catIndex) => (
                         <section key={catName}>
-                            <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-color)', marginBottom: '20px', borderLeft: '4px solid var(--accent-color)', paddingLeft: '12px' }}>
-                                {catName}
+                            <h2 style={{ fontSize: '1.4rem', color: 'var(--primary-color)', marginBottom: '20px', borderLeft: '4px solid var(--accent-color)', paddingLeft: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FolderOpen size={24} /> {catName}
                             </h2>
                             <div className="downloads-grid">
                                 {items.map((res, resIndex) => (

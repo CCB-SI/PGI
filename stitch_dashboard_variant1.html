@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<title>PGRI Santa Isabel Dashboard</title>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex min-h-screen w-full flex-col pb-20">
+<header class="sticky top-0 z-50 flex items-center justify-between bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 border-b border-primary/10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">menu</span>
+</div>
+<h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">PGRI Santa Isabel</h2>
+<div class="flex items-center">
+<button class="flex items-center justify-center size-10 rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<section class="px-4 pt-6 pb-4">
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-blue-700 p-6 text-white shadow-lg shadow-primary/20">
+<div class="relative z-10 flex flex-col gap-3">
+<h1 class="text-3xl font-black leading-tight">PGRI Santa Isabel</h1>
+<p class="text-sm font-medium opacity-90 uppercase tracking-wider">Plataforma de Gestão Regional Integrada</p>
+<p class="text-sm leading-relaxed opacity-80 max-w-[280px]">Gerencie atividades, documentos e calendários de forma centralizada para toda a regional.</p>
+<div class="mt-2">
+<button class="flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+                            Agenda Regional
+                        </button>
+</div>
+</div>
+<div class="absolute -right-10 -top-10 size-40 rounded-full bg-white/10 blur-3xl"></div>
+<div class="absolute -bottom-10 right-0 size-32 rounded-full bg-blue-400/20 blur-2xl"></div>
+</div>
+</section>
+<section class="px-4 py-6">
+<h2 class="mb-4 text-xl font-bold tracking-tight">Acesso Rápido</h2>
+<div class="grid grid-cols-2 gap-3">
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">home</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Comuns</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">Endereços e horários de cultos locais.</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white text-sm">Calendário</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">Eventos e reuniões da região.</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">folder_open</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Material</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">Formulários e documentos oficiais.</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-slate-900 p-4 shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined">play_circle</span>
+</div>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-600 text-lg">chevron_right</span>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Estudos</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">Vídeos de estudos musicais.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4 py-4">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold tracking-tight">Próximos Eventos</h2>
+<button class="text-primary text-sm font-semibold">Ver todos</button>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-4 rounded-xl bg-white dark:bg-slate-900 p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="flex flex-col items-center justify-center min-w-[56px] h-14 rounded-lg bg-primary/5 text-primary border border-primary/10">
+<span class="text-xs font-bold uppercase">Out</span>
+<span class="text-xl font-black">15</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white text-sm">Ensaio Regional</h4>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Santa Isabel - Central
+                        </div>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-xl bg-white dark:bg-slate-900 p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="flex flex-col items-center justify-center min-w-[56px] h-14 rounded-lg bg-primary/5 text-primary border border-primary/10">
+<span class="text-xs font-bold uppercase">Out</span>
+<span class="text-xl font-black">18</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white text-sm">Reunião Ministerial</h4>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Brás Cubas
+                        </div>
+</div>
+</div>
+<div class="flex items-center gap-4 rounded-xl bg-white dark:bg-slate-900 p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="flex flex-col items-center justify-center min-w-[56px] h-14 rounded-lg bg-primary/5 text-primary border border-primary/10">
+<span class="text-xs font-bold uppercase">Nov</span>
+<span class="text-xl font-black">02</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-slate-900 dark:text-white text-sm">Assembleia Geral</h4>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-xs mt-1">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                            Regional Sede
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<section class="px-4 py-6">
+<h2 class="mb-4 text-xl font-bold tracking-tight text-slate-900 dark:text-white">Mural de Informativos</h2>
+<div class="grid grid-cols-1 gap-4">
+<div class="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<div class="p-4">
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">Aviso</span>
+<span class="text-[10px] text-slate-400 font-medium">12 de Out</span>
+</div>
+<h3 class="font-bold leading-snug text-slate-900 dark:text-white">Atualização dos relatórios de movimento financeiro mensal.</h3>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<div class="p-4">
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">Urgente</span>
+<span class="text-[10px] text-slate-400 font-medium">10 de Out</span>
+</div>
+<div class="flex items-start gap-2">
+<h3 class="font-bold leading-snug text-slate-900 dark:text-white flex-1">Novas diretrizes para eventos externos e visitas regionais.</h3>
+<span class="material-symbols-outlined text-slate-400 text-lg">lock</span>
+</div>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+<div class="p-4">
+<div class="flex items-center justify-between mb-2">
+<span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">Aviso</span>
+<span class="text-[10px] text-slate-400 font-medium">08 de Out</span>
+</div>
+<h3 class="font-bold leading-snug text-slate-900 dark:text-white">Disponibilidade do novo hinário digital para estudos.</h3>
+</div>
+</div>
+</div>
+<div class="mt-6 flex justify-center">
+<button class="w-full max-w-xs rounded-lg border border-primary/20 bg-primary/5 py-3 text-sm font-bold text-primary transition-colors active:bg-primary/10">
+                    Carregar Mais
+                </button>
+</div>
+</section>
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex h-16 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md px-4 pb-2 pt-2">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[24px] fill-[1]">home</span>
+<span class="text-[10px] font-semibold">Início</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">calendar_today</span>
+<span class="text-[10px] font-semibold">Agenda</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">folder</span>
+<span class="text-[10px] font-semibold">Arquivos</span>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[10px] font-semibold">Perfil</span>
+</a>
+</nav>
+</div>
+
+</body></html>

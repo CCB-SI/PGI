@@ -1,6 +1,6 @@
-'use client';
 import { useState, useEffect } from 'react';
 import { EVENT_TYPES, DAYS_OF_WEEK, TIMES, RECURRENCES, fetchMembers } from '@/services/api';
+import { Trash2, Plus } from 'lucide-react';
 
 export default function ComunModal({ location, isEditing, onSave, onClose }) {
     const emptyForm = {
@@ -200,7 +200,9 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                                                 ? ` · ${new Date(s.specific_date + 'T00:00:00').toLocaleDateString('pt-BR')}`
                                                 : ''}
                                         </span>
-                                        <button type="button" className="schedule-remove" onClick={() => removeSchedule(i)} aria-label="Remover">×</button>
+                                        <button type="button" className="schedule-remove" onClick={() => removeSchedule(i)} aria-label="Remover">
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -232,7 +234,9 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                             {newSchedule.recurrence === 'Data Específica' && (
                                 <input type="date" value={specificDate} onChange={(e) => setSpecificDate(e.target.value)} className="schedule-date-input" />
                             )}
-                            <button type="button" className="btn-add-schedule" onClick={addSchedule}>+ Adicionar</button>
+                            <button type="button" className="btn-add-schedule" onClick={addSchedule} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <Plus size={16} /> Adicionar
+                            </button>
                         </div>
                     </div>
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchLocations } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
+import { Calendar } from 'lucide-react';
 
 export default function UpcomingEvents() {
     const [locations, setLocations] = useState([]);
@@ -155,7 +156,9 @@ export default function UpcomingEvents() {
                                 <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{e.city}</p>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', background: '#f9f9f9', padding: '8px', borderRadius: '4px' }}>
-                                    <span style={{ fontWeight: 'bold' }}>🗓️ {e.nextDateLabel}</span>
+                                    <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Calendar size={16} /> {e.nextDateLabel}
+                                    </span>
                                     <span>{e.day_of_week} às {e.time}</span>
                                 </div>
                             </div>

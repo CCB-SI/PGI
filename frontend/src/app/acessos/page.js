@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Badge from '@/components/Badge';
+import { Lock } from 'lucide-react';
 
 export default function AcessosDashboard() {
     const { user, loading: authLoading } = useAuth();
@@ -85,7 +86,7 @@ export default function AcessosDashboard() {
         <div className="animate-in">
             <div style={{ background: '#f8f9fa', padding: '30px', borderRadius: '8px', marginBottom: '40px', borderLeft: '5px solid #f44336' }}>
                 <h1 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    🔐 Gestão de Acessos
+                    <Lock size={28} /> Gestão de Acessos
                 </h1>
                 <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
                     Controle quem pode fazer login, emitir documentos e modificar os dados do painel M3.

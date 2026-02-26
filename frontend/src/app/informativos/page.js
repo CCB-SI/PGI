@@ -4,6 +4,7 @@ import NewsModal from '@/components/NewsModal';
 import Badge from '@/components/Badge';
 import { fetchNews, createNews, updateNews, deleteNews } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { Plus, Lock, Edit2, Trash2 } from 'lucide-react';
 
 const INITIAL_COUNT = 5;
 
@@ -76,8 +77,8 @@ export default function InformativosPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Informativos</h1>
                 {user?.role === 'admin' && (
-                    <button className="btn-primary" onClick={handleNew}>
-                        + Novo Informativo
+                    <button className="btn-primary" onClick={handleNew} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={18} /> Novo Informativo
                     </button>
                 )}
             </div>
@@ -148,15 +149,21 @@ export default function InformativosPage() {
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                     <h3 style={{ margin: 0 }}>{news.title}</h3>
                                     {news.target_audience === 'Ministerial' && (
-                                        <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒 Ministerial</span>
+                                        <span style={{ fontSize: '0.8rem', color: '#f44336', display: 'flex', alignItems: 'center', gap: '4px' }} title="Exclusivo Ministerial">
+                                            <Lock size={14} /> Ministerial
+                                        </span>
                                     )}
                                 </div>
                                 <p style={{ whiteSpace: 'pre-line' }}>{news.content}</p>
 
                                 {user?.role === 'admin' && (
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
-                                        <button className="btn-small btn-small-edit" onClick={() => handleEdit(news)}>Editar</button>
-                                        <button className="btn-small btn-small-danger" onClick={() => handleDelete(news.id)}>Excluir</button>
+                                        <button className="btn-small btn-small-edit" onClick={() => handleEdit(news)} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Edit2 size={14} /> Editar
+                                        </button>
+                                        <button className="btn-small btn-small-danger" onClick={() => handleDelete(news.id)} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Trash2 size={14} /> Excluir
+                                        </button>
                                     </div>
                                 )}
                             </div>

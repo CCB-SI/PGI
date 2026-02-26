@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchLocations, fetchNews } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
+import { Printer, MessageCircle, MapPin, Navigation, Lock, Calendar } from 'lucide-react';
 
 export default function AgendaPage() {
     const [locations, setLocations] = useState([]);
@@ -179,7 +180,7 @@ export default function AgendaPage() {
                 text += `_${city}_\n`;
                 grouped[type][city].forEach(e => {
                     text += `• ${e.locationName}\n`;
-                    text += `  🗓️ ${e.nextDateLabel} | ${e.day_of_week} às ${e.time} (${e.recurrence})\n`;
+                    text += `  Data: ${e.nextDateLabel} | ${e.day_of_week} às ${e.time} (${e.recurrence})\n`;
                 });
                 text += '\n';
             });
@@ -197,9 +198,11 @@ export default function AgendaPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }} className="no-print">
                 <h1 className="section-title" style={{ margin: 0 }}>Agenda Regional</h1>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                    <button className="btn-secondary" onClick={handlePrint}>🖨️ Exportar PDF</button>
-                    <button className="btn-primary" onClick={handleShareWhatsApp} style={{ background: '#25D366', borderColor: '#25D366' }}>
-                        💬 WhatsApp
+                    <button className="btn-secondary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Printer size={18} /> Exportar PDF
+                    </button>
+                    <button className="btn-primary" onClick={handleShareWhatsApp} style={{ background: '#25D366', borderColor: '#25D366', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageCircle size={18} /> WhatsApp
                     </button>
                 </div>
             </div>
@@ -347,13 +350,15 @@ export default function AgendaPage() {
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                     <div>
                                                         <h4 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', color: 'var(--primary-color)' }}>{e.locationName}</h4>
-                                                        <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem' }}>
-                                                            {e.maps_url && <a href={e.maps_url} target="_blank" rel="noopener noreferrer" style={{ color: '#4285F4', textDecoration: 'none' }}>📍 Maps</a>}
-                                                            {e.waze_url && <a href={e.waze_url} target="_blank" rel="noopener noreferrer" style={{ color: '#33CCFF', textDecoration: 'none' }}>🚙 Waze</a>}
+                                                        <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', marginTop: '6px' }}>
+                                                            {e.maps_url && <a href={e.maps_url} target="_blank" rel="noopener noreferrer" style={{ color: '#4285F4', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={14} /> Maps</a>}
+                                                            {e.waze_url && <a href={e.waze_url} target="_blank" rel="noopener noreferrer" style={{ color: '#33CCFF', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}><Navigation size={14} /> Waze</a>}
                                                         </div>
                                                     </div>
                                                     {e.target_audience === 'Ministerial' && (
-                                                        <span style={{ fontSize: '1rem' }} title="Exclusivo Ministerial">🔒</span>
+                                                        <span style={{ color: 'var(--warning-color)' }} title="Exclusivo Ministerial">
+                                                            <Lock size={18} />
+                                                        </span>
                                                     )}
                                                 </div>
 
@@ -365,7 +370,9 @@ export default function AgendaPage() {
 
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <span style={{ fontWeight: '600', color: 'var(--accent-color)' }}>{e.nextDateLabel}</span>
+                                                        <span style={{ fontWeight: '600', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <Calendar size={16} /> {e.nextDateLabel}
+                                                        </span>
                                                         <span>{e.day_of_week} às {e.time}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>

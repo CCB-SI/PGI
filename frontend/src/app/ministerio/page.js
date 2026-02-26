@@ -4,6 +4,7 @@ import { fetchMembers, createMember, updateMember, deleteMember, MINISTRY_ROLES 
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function MinisterioPage() {
     const { user, loading: authLoading } = useAuth();
@@ -116,10 +117,10 @@ export default function MinisterioPage() {
                     <button
                         className="btn-primary"
                         onClick={handleAdd}
-                        style={{ padding: '8px 20px', minWidth: '120px' }}
+                        style={{ padding: '8px 20px', minWidth: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                         disabled={actionLoading}
                     >
-                        {actionLoading ? 'Gravando...' : '+ Cadastrar'}
+                        {actionLoading ? 'Gravando...' : <><Plus size={16} /> Cadastrar</>}
                     </button>
                 </div>
             )}
@@ -167,9 +168,13 @@ export default function MinisterioPage() {
                                             {user && (
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px' }}>
-                                                        <button className="btn-small btn-small-edit" onClick={() => startEdit(m)}>Editar</button>
+                                                        <button className="btn-small btn-small-edit" onClick={() => startEdit(m)} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                            <Edit2 size={14} /> Editar
+                                                        </button>
                                                         {user.role === 'admin' && (
-                                                            <button className="btn-small btn-small-danger" onClick={() => handleDelete(m.id, m.name)}>Excluir</button>
+                                                            <button className="btn-small btn-small-danger" onClick={() => handleDelete(m.id, m.name)} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                <Trash2 size={14} /> Excluir
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </td>

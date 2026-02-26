@@ -5,6 +5,7 @@ import ComunModal from '@/components/ComunModal';
 import ComunDetailModal from '@/components/ComunDetailModal';
 import { fetchLocations, createLocation, updateLocation, deleteLocation, uploadLocationPhoto, createSchedule, deleteSchedule, linkMemberToLocation, unlinkMemberFromLocation } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 
 export default function LocaisPage() {
@@ -116,8 +117,8 @@ export default function LocaisPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Comuns</h1>
                 {user?.role === 'admin' && (
-                    <button className="btn-primary" onClick={handleNewClick}>
-                        + Cadastrar Comum
+                    <button className="btn-primary" onClick={handleNewClick} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={18} /> Cadastrar Comum
                     </button>
                 )}
             </div>

@@ -1,3 +1,5 @@
+import { MapPin } from 'lucide-react';
+
 export default function EventCard({ title, date, location, category, description }) {
     return (
         <div className="event-card">
@@ -9,7 +11,7 @@ export default function EventCard({ title, date, location, category, description
             </div>
             <div className="event-body">
                 <h3>{title}</h3>
-                <p className="event-location">📍 {location?.name || location}</p>
+                <p className="event-location" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> {location?.name || location}</p>
                 <p className="event-description">{description}</p>
             </div>
             <div className="event-footer">

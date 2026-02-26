@@ -1,15 +1,16 @@
 import { getPhotoUrl } from '@/services/api';
+import { FileText, FileEdit, BarChart2, Image as ImageIcon, Link2, Folder, Lock, Download, Trash2 } from 'lucide-react';
 
 export default function ResourceCard({ id, title, description, file_type, category, file_url, user, target_audience, onDelete }) {
     // Simple icon selection based on type
     const getIcon = (type) => {
         const t = (type || '').toLowerCase();
-        if (t.includes('pdf')) return '📄';
-        if (t.includes('doc')) return '📝';
-        if (t.includes('xls') || t.includes('csv')) return '📊';
-        if (t.includes('img') || t.includes('png') || t.includes('jpg')) return '🖼️';
-        if (t.includes('link') || t.includes('http')) return '🔗';
-        return '📁';
+        if (t.includes('pdf')) return <FileText size={18} />;
+        if (t.includes('doc')) return <FileEdit size={18} />;
+        if (t.includes('xls') || t.includes('csv')) return <BarChart2 size={18} />;
+        if (t.includes('img') || t.includes('png') || t.includes('jpg')) return <ImageIcon size={18} />;
+        if (t.includes('link') || t.includes('http')) return <Link2 size={18} />;
+        return <Folder size={18} />;
     };
 
     const fullFileUrl = getPhotoUrl(file_url);
@@ -28,24 +29,24 @@ export default function ResourceCard({ id, title, description, file_type, catego
                         </span>
                         <span style={{ fontSize: '0.8rem', color: 'var(--primary-color)', marginRight: '10px' }}>{category}</span>
                         {target_audience === 'Ministerial' && (
-                            <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒 Ministerial</span>
+                            <span style={{ fontSize: '0.8rem', color: '#f44336', display: 'inline-flex', alignItems: 'center', gap: '4px' }} title="Exclusivo Ministerial"><Lock size={12} /> Ministerial</span>
                         )}
                     </div>
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                <a href={fullFileUrl} target="_blank" rel="noopener noreferrer" className="btn-download" style={{ flex: 1, textAlign: 'center' }}>
-                    {isLink ? 'Acessar Link 🔗' : 'Baixar Arquivo ⬇️'}
+                <a href={fullFileUrl} target="_blank" rel="noopener noreferrer" className="btn-download" style={{ flex: 1, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    {isLink ? <><Link2 size={16} /> Acessar Link</> : <><Download size={16} /> Baixar Arquivo</>}
                 </a>
                 {user?.role === 'admin' && (
                     <button
                         onClick={() => onDelete(id, title)}
                         className="btn-small btn-small-danger"
-                        style={{ padding: '0 12px' }}
+                        style={{ padding: '0 12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         title="Excluir arquivo"
                     >
-                        🗑️
+                        <Trash2 size={16} />
                     </button>
                 )}
             </div>

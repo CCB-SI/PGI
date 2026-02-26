@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Download the HTML file
+curl -L -o stitch_dashboard_variant1.html "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ8Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpbCiVodG1sXzRhNTY3YzI5NmZjMjQ2OTY4NWMzOTI5OTI1NmFhNjQ0EgsSBxDSuri42gEYAZIBJAoKcHJvamVjdF9pZBIWQhQxODM1OTAwNjQ4MzE1MDAwMzE0MQ&filename=&opi=89354086"
+
+# Download the Screenshot
+curl -L -o stitch_dashboard_variant1.png "https://lh3.googleusercontent.com/aida/AOfcidXTVIgMgcmeMs4tzGD6qyUzhL_Ry7SeAFdVJuZgDJ5RwRQM2r2vtO0GTHFsrMfk-rYzJGx3HuTUR1Y4S_6i1Wv_rxA3oNW74mUtzL-ZN8gUJzlO3pOhpgBcZnzFVK3x3d1LqqIhTgS8JY2u83utf1fE21W_3MZMP6q3_vP8lX_Id3S1a8XxWw9kbwmF8bWiIUXVMWHrazhBlGQ2iYYXarjGDYyl_bMc2s4qS5_pp0QjCWSXA1vaQwQHKGeF"
+
+echo "Download finalizado!"

@@ -1,6 +1,6 @@
 'use client';
 import { getPhotoUrl } from '@/services/api';
-
+import { MapPin, Clock, Users, FileText } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function ComunDetailModal({ location, onEdit, onDelete, onClose }) {
@@ -55,7 +55,7 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
 
                 <div className="detail-grid">
                     <div className="detail-section">
-                        <h4>📍 Endereço</h4>
+                        <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={18} /> Endereço</h4>
                         <p>{location.address}</p>
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             {gpsLink && (
@@ -74,7 +74,7 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
                     {/* Horários agrupados por tipo */}
                     {Object.keys(groupedSchedules).length > 0 && (
                         <div className="detail-section">
-                            <h4>🕐 Horários</h4>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={18} /> Horários</h4>
                             <div className="schedule-groups">
                                 {Object.entries(groupedSchedules).map(([type, items]) => (
                                     <div key={type} className="schedule-group">
@@ -99,7 +99,7 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
                     {/* Irmãos do Ministério agrupados por cargo */}
                     {Object.keys(groupedMembers).length > 0 && (
                         <div className="detail-section">
-                            <h4>👥 Irmãos do Ministério</h4>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Users size={18} /> Irmãos do Ministério</h4>
                             <div className="schedule-groups">
                                 {Object.entries(groupedMembers).map(([role, items]) => (
                                     <div key={role} className="schedule-group">
@@ -119,7 +119,7 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
 
                     {location.description && (
                         <div className="detail-section">
-                            <h4>📝 Descrição</h4>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FileText size={18} /> Descrição</h4>
                             <p>{location.description}</p>
                         </div>
                     )}

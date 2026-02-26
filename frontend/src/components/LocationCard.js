@@ -1,4 +1,5 @@
 import { getPhotoUrl } from '@/services/api';
+import { MapPin, Clock } from 'lucide-react';
 
 export default function LocationCard({ name, city, address, photo_url, schedules = [], onClick }) {
     const photoUrl = getPhotoUrl(photo_url);
@@ -25,9 +26,9 @@ export default function LocationCard({ name, city, address, photo_url, schedules
             <div className="location-body">
                 <h3>{name}</h3>
                 <span className="location-city">{city}</span>
-                <p className="address">📍 {address}</p>
+                <p className="address" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> {address}</p>
                 {previewText && (
-                    <p className="worship-badge">🕐 {previewText}{totalSchedules > 1 ? ` +${totalSchedules - 1}` : ''}</p>
+                    <p className="worship-badge" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={16} /> {previewText}{totalSchedules > 1 ? ` +${totalSchedules - 1}` : ''}</p>
                 )}
             </div>
         </div>

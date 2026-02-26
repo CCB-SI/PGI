@@ -6,6 +6,7 @@ import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
+import { Lock } from 'lucide-react';
 
 export default function MinisterialDashboard() {
     const { user, loading: authLoading } = useAuth();
@@ -131,7 +132,7 @@ export default function MinisterialDashboard() {
         <div className="animate-in">
             <div style={{ background: '#f8f9fa', padding: '30px', borderRadius: '8px', marginBottom: '40px', borderLeft: '5px solid #424242' }}>
                 <h1 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    🔒 Dashboard Ministerial
+                    <Lock size={28} /> Dashboard Ministerial
                 </h1>
                 <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
                     Painel exclusivo para avisos e reuniões regionais do ministério.

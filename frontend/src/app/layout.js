@@ -1,8 +1,11 @@
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
+import BottomNav from '@/components/BottomNav';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import './globals.css';
+import './stitch-tailwind.css';
 
 export const metadata = {
   title: 'PGRI Santa Isabel – Gestão Regional Integrada',
@@ -16,16 +19,19 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body>
         <AuthProvider>
           <ToastProvider>
             <Header />
-            <main className="container" style={{ minHeight: '80vh', padding: '20px 0' }}>
+            {/* Added bottom padding (pb-20) to prevent content being hidden behind the new BottomNav */}
+            <main className="container pb-20 lg:pb-0" style={{ minHeight: '80vh', paddingTop: '20px' }}>
               {children}
             </main>
             <Footer />
+            <BottomNav />
             <ScrollToTop />
           </ToastProvider>
         </AuthProvider>

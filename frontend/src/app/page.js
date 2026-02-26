@@ -3,56 +3,34 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import UpcomingEvents from '@/components/UpcomingEvents';
+import { fetchNews } from '@/services/api';
 
 const quickAccessCards = [
   {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
+    icon: 'location_city',
     title: 'Comuns',
-    description: 'Aqui encontra-se o endereço, dias de culto, ensaios e toda agenda relacionada a Comum congregação.',
+    description: 'Endereços e horários de cultos e eventos relacionados as comuns da regional.',
     href: '/locais',
   },
   {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-    title: 'Calendário Regional',
-    description: 'Agendas de todos os Eventos da nossa Regional SAI',
+    icon: 'event_available',
+    title: 'Calendário',
+    description: 'Eventos e reuniões da região.',
     href: '/eventos',
   },
   {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-      </svg>
-    ),
-    title: 'Material de Apoio',
-    description: 'Formulários e documentos oficiais para todos os setores: Administração, Musical, DARPE, EBI etc.',
+    icon: 'folder_open',
+    title: 'Formulários',
+    description: 'Formulários e documentos oficiais.',
     href: '/downloads',
   },
   {
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-        <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-      </svg>
-    ),
-    title: 'Recursos de Estudo',
-    description: 'Vídeos de auxílio ao MSA, métodos e orientações musicais.',
+    icon: 'play_circle',
+    title: 'Recursos',
+    description: 'Central de recursos para download ou visualização.',
     href: '/downloads',
   },
 ];
-
-import { fetchNews } from '@/services/api';
 
 const INITIAL_NEWS_COUNT = 5;
 
@@ -74,77 +52,103 @@ export default function Home() {
   const hasMore = visibleCount < filteredNews.length;
 
   return (
-    <div>
-      {/* === Hero Banner === */}
-      <section className="hero-banner">
-        <div className="hero-decoration"></div>
-        <h1>PGRI Santa Isabel</h1>
-        <p className="hero-subtitle">Plataforma de Gestão Regional Integrada</p>
-        <p>Gestão Integrada SAI: A plataforma central para calendários ministeriais, suporte musical e comunicação administrativa das cidades de Santa Isabel, Arujá e Igaratá.</p>
-        <Link href="/eventos" className="cta-button">
-          Agenda Regional
-        </Link>
-      </section>
+    <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+      <div className="relative flex w-full flex-col pb-20">
 
-      {/* === Acesso Rápido === */}
-      <section className="quick-access-section">
-        <h2 className="section-title">Acesso Rápido</h2>
-        <div className="quick-access-grid">
-          {quickAccessCards.map((card, index) => (
-            <Link href={card.href} key={index} className="quick-card">
-              <div className="quick-card-icon">{card.icon}</div>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-              <span className="quick-card-arrow">→</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+        {/* Header removido: Agora usando o componente global Header no layout.js */}
 
-      {/* === Próximos Eventos Widget === */}
-      <UpcomingEvents />
+        {/* Hero Banner */}
+        <section className="px-4 pt-6 pb-4">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-blue-700 p-6 text-white shadow-lg shadow-primary/20">
+            <div className="relative z-10 flex flex-col gap-3">
+              <h1 className="text-3xl font-black leading-tight">PGRI Santa Isabel</h1>
+              <p className="text-sm font-medium opacity-90 uppercase tracking-wider">Plataforma de Gestão Regional Integrada</p>
+              <p className="text-sm leading-relaxed opacity-80 max-w-[280px]">Gerencie atividades, documentos e calendários de forma centralizada para toda a regional.</p>
+              <div className="mt-2">
+                <Link href="/eventos" className="inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-primary shadow-sm hover:scale-105 active:scale-95 transition-transform focus-visible:ring-2 focus-visible:ring-white">
+                  <span className="material-symbols-outlined text-lg">calendar_month</span>
+                  Agenda Regional
+                </Link>
+              </div>
+            </div>
+            <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 blur-3xl"></div>
+            <div className="absolute -bottom-10 right-0 w-32 h-32 rounded-full bg-blue-400/20 blur-2xl"></div>
+          </div>
+        </section>
 
-      {/* === Mural de Informativos === */}
-      <section className="news-section">
-        <h2 className="section-title">Mural de Informativos</h2>
-
-        {allNews.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)' }}>Nenhum informativo no momento.</p>
-        ) : (
-          <div className="news-grid">
-            {visibleNews.map((news) => (
-              <article key={news.id} className="news-card">
-                <div className="news-card-header">
-                  <span className="news-tag" style={{ backgroundColor: news.tag_color }}>
-                    {news.tag}
-                  </span>
-                  <span className="news-date">{news.date}</span>
-                </div>
-                <div className="news-card-body">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <h3 style={{ margin: 0 }}>{news.title}</h3>
-                    {news.target_audience === 'Ministerial' && (
-                      <span style={{ fontSize: '0.8rem', color: '#f44336' }} title="Exclusivo Ministerial">🔒</span>
-                    )}
+        {/* Acesso Rápido */}
+        <section className="px-4 py-6">
+          <h2 className="mb-4 text-xl font-bold tracking-tight">Acesso Rápido</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickAccessCards.map((card, index) => (
+              <Link href={card.href} key={index} className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-[#1D1D1F] p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-primary">
+                <div className="flex items-start justify-between">
+                  <div className="flex min-w-[44px] min-h-[44px] items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <span className="material-symbols-outlined">{card.icon}</span>
                   </div>
-                  <p style={{ whiteSpace: 'pre-line' }}>{news.content}</p>
+                  <span className="material-symbols-outlined text-slate-400 dark:text-slate-500 text-lg">chevron_right</span>
                 </div>
-              </article>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm lg:text-base">{card.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-snug">{card.description}</p>
+                </div>
+              </Link>
             ))}
           </div>
-        )}
+        </section>
 
-        {hasMore && (
-          <div className="load-more-container">
-            <button
-              className="btn-load-more"
-              onClick={() => setVisibleCount((prev) => prev + 3)}
-            >
-              Carregar Mais
-            </button>
-          </div>
-        )}
-      </section>
+        {/* Próximos Eventos */}
+        <div className="px-4 py-4">
+          <UpcomingEvents />
+        </div>
+
+        {/* Mural de Informativos */}
+        <section className="px-4 py-6">
+          <h2 className="mb-4 text-xl font-bold tracking-tight text-slate-900 dark:text-white">Mural de Informativos</h2>
+
+          {allNews.length === 0 ? (
+            <p className="text-slate-500 dark:text-slate-400">Nenhum informativo no momento.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {visibleNews.map((news) => (
+                <article key={news.id} className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#1D1D1F] shadow-sm p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary" style={{ backgroundColor: news.tag_color ? `${news.tag_color}20` : undefined, color: news.tag_color }}>
+                      {news.tag}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-medium">{news.date}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <h3 className="font-bold leading-snug text-slate-900 dark:text-white mb-2">{news.title}</h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-line">{news.content}</p>
+                    </div>
+                    {news.target_audience === 'Ministerial' && (
+                      <span className="material-symbols-outlined text-slate-400 text-lg" title="Exclusivo Ministerial">
+                        lock
+                      </span>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {hasMore && (
+            <div className="mt-6 flex justify-center">
+              <button
+                className="w-full min-h-[44px] max-w-xs rounded-xl border border-primary/20 bg-primary/5 py-3 text-sm font-bold text-primary transition-all hover:bg-primary/10 hover:scale-[1.02] active:bg-primary/20 focus-visible:ring-2 focus-visible:ring-primary cursor-pointer"
+                onClick={() => setVisibleCount((prev) => prev + 3)}
+              >
+                Carregar Mais
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Bottom Navigation removido: Agora usando o componente global BottomNav no layout.js */}
+
+      </div>
     </div>
   );
 }

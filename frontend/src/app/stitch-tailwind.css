@@ -1,0 +1,823 @@
+/* ============================
+   STITCH DASHBOARD GLOBALS (Tailwind replacements)
+   ============================ */
+
+/* UI/UX Pro Max: Bento Grid & High Contrast Aesthetics */
+:root {
+    --stitch-primary: #2b8cee;
+    --stitch-primary-hover: #1e70c4;
+    --stitch-bg-light: #F5F5F7;
+    /* Apple style Bento back */
+    --stitch-surface: #ffffff;
+    --stitch-text: #0F172A;
+    /* Slate 900 for WCAG AAA */
+    --stitch-text-muted: #475569;
+    /* Slate 600 instead of 500 for better contrast (UX Rule #36) */
+    --stitch-border: #e2e8f0;
+}
+
+/* Tailwind-like utilities used in page.js */
+.bg-background-light {
+    background-color: var(--stitch-bg-light);
+}
+
+.font-display {
+    font-family: 'Inter', sans-serif;
+}
+
+.text-slate-900 {
+    color: var(--stitch-text);
+}
+
+.text-slate-600 {
+    color: var(--stitch-text-muted);
+}
+
+.text-slate-500 {
+    color: var(--stitch-text-muted);
+}
+
+.text-slate-400 {
+    color: #64748b;
+}
+
+.text-slate-300 {
+    color: #94a3b8;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.text-primary {
+    color: var(--stitch-primary);
+}
+
+.bg-white {
+    background-color: var(--stitch-surface);
+}
+
+.bg-primary\/10 {
+    background-color: rgba(43, 140, 238, 0.1);
+}
+
+.bg-primary\/5 {
+    background-color: rgba(43, 140, 238, 0.05);
+}
+
+/* Interaction & Accessibility (focus, hover, touch targets) */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.min-h-\[44px\] {
+    min-height: 44px;
+}
+
+.min-w-\[44px\] {
+    min-width: 44px;
+}
+
+/* Clear focus rings (UX Rule #28) */
+.focus-visible\:ring-2:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--stitch-primary);
+}
+
+/* Layout utilities */
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.relative {
+    position: relative;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.sticky {
+    position: sticky;
+}
+
+.top-0 {
+    top: 0;
+}
+
+.bottom-0 {
+    bottom: 0;
+}
+
+.left-0 {
+    left: 0;
+}
+
+.right-0 {
+    right: 0;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+.z-10 {
+    z-index: 10;
+}
+
+.flex {
+    display: flex;
+}
+
+.inline-flex {
+    display: inline-flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.items-start {
+    align-items: flex-start;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-3 {
+    gap: 0.75rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* Spacing */
+.w-full {
+    width: 100%;
+}
+
+.max-w-xs {
+    max-width: 20rem;
+}
+
+.w-10 {
+    width: 2.5rem;
+}
+
+.h-10 {
+    height: 2.5rem;
+}
+
+.w-40 {
+    width: 10rem;
+}
+
+.h-40 {
+    height: 10rem;
+}
+
+.w-32 {
+    width: 8rem;
+}
+
+.h-32 {
+    height: 8rem;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.pb-20 {
+    padding-bottom: 5rem;
+}
+
+.pb-4 {
+    padding-bottom: 1rem;
+}
+
+.pb-2 {
+    padding-bottom: 0.5rem;
+}
+
+.pt-6 {
+    padding-top: 1.5rem;
+}
+
+.pt-2 {
+    padding-top: 0.5rem;
+}
+
+.py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.py-2\.5 {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+}
+
+.py-0\.5 {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.px-5 {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+.px-2 {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.p-4 {
+    padding: 1rem;
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+.mt-2 {
+    margin-top: 0.5rem;
+}
+
+.mt-6 {
+    margin-top: 1.5rem;
+}
+
+/* Typography */
+.text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.text-\[10px\] {
+    font-size: 10px;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+}
+
+.text-\[24px\] {
+    font-size: 24px;
+}
+
+.font-medium {
+    font-weight: 500;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-black {
+    font-weight: 900;
+}
+
+.tracking-tight {
+    letter-spacing: -0.025em;
+}
+
+.tracking-wider {
+    letter-spacing: 0.05em;
+}
+
+.tracking-wide {
+    letter-spacing: 0.025em;
+}
+
+.leading-tight {
+    line-height: 1.25;
+}
+
+.leading-snug {
+    line-height: 1.375;
+}
+
+.leading-relaxed {
+    line-height: 1.625;
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+.opacity-80 {
+    opacity: 0.8;
+}
+
+.opacity-90 {
+    opacity: 0.9;
+}
+
+/* Effects & Borders */
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-primary\/20 {
+    box-shadow: 0 10px 15px -3px rgba(43, 140, 238, 0.2);
+}
+
+/* Soft shadows for Bento aesthetic */
+.hover\:shadow-lg:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.rounded-xl {
+    border-radius: 1rem;
+}
+
+/* Enhanced to 16px for Bento Box */
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.border {
+    border-width: 1px;
+    border-style: solid;
+}
+
+.border-b {
+    border-bottom-width: 1px;
+    border-style: solid;
+}
+
+.border-t {
+    border-top-width: 1px;
+    border-style: solid;
+}
+
+.border-slate-100 {
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+.border-slate-200 {
+    border-color: #e2e8f0;
+}
+
+.border-primary\/10 {
+    border-color: rgba(43, 140, 238, 0.1);
+}
+
+.border-primary\/20 {
+    border-color: rgba(43, 140, 238, 0.2);
+}
+
+.bg-gradient-to-br {
+    background-image: linear-gradient(to bottom right, var(--stitch-primary), #1d4ed8);
+}
+
+.backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.blur-2xl {
+    filter: blur(40px);
+}
+
+.blur-3xl {
+    filter: blur(64px);
+}
+
+.overflow-hidden {
+    overflow: hidden;
+}
+
+/* Transitions & Interactions (UX Rule #8, #30) */
+.transition-colors {
+    transition-property: color, background-color, border-color;
+    transition-timing-function: ease-out;
+    transition-duration: 200ms;
+}
+
+.transition-transform {
+    transition-property: transform;
+    transition-timing-function: ease-out;
+    transition-duration: 200ms;
+}
+
+.transition-all {
+    transition-property: all;
+    transition-timing-function: ease-out;
+    transition-duration: 250ms;
+}
+
+.transition-shadow {
+    transition-property: box-shadow;
+    transition-timing-function: ease-out;
+    transition-duration: 200ms;
+}
+
+/* Bento Hover Scale (1.02) */
+.hover\:scale-\[1\.02\]:hover {
+    transform: scale(1.02);
+}
+
+.hover\:shadow-md:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hover\:scale-105:hover {
+    transform: scale(1.05);
+}
+
+.active\:scale-95:active {
+    transform: scale(0.95);
+}
+
+.hover\:text-primary:hover {
+    color: var(--stitch-primary);
+}
+
+.hover\:bg-primary\/10:hover {
+    background-color: rgba(43, 140, 238, 0.1);
+}
+
+.active\:bg-primary\/20:active {
+    background-color: rgba(43, 140, 238, 0.2);
+}
+
+/* Material Symbols Adjustments */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+@media (min-width: 1024px) {
+    .lg\:text-base {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+}
+
+/* ============================
+   BEM COMPONENTS FOR GLOBAL LAYOUT
+   ============================ */
+
+/* --- Stitch Header --- */
+.stitch-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(43, 140, 238, 0.1);
+}
+
+.stitch-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stitch-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--stitch-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+@media (min-width: 768px) {
+    .stitch-header-title {
+        max-width: none;
+    }
+}
+
+.stitch-header-right {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+/* Icon Buttons */
+.stitch-icon-btn {
+    display: flex;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    color: var(--stitch-primary);
+    cursor: pointer;
+    transition: background-color 200ms ease-out, box-shadow 200ms ease-out;
+}
+
+.stitch-icon-btn:hover {
+    background-color: rgba(43, 140, 238, 0.05);
+}
+
+.stitch-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--stitch-primary);
+}
+
+.stitch-icon-btn-primary {
+    border-radius: 9999px;
+    background-color: rgba(43, 140, 238, 0.1);
+}
+
+.stitch-icon-btn-primary:hover {
+    background-color: rgba(43, 140, 238, 0.2);
+}
+
+/* --- Stitch Dropdown --- */
+.stitch-dropdown {
+    position: absolute;
+    right: 0;
+    top: 3rem;
+    margin-top: 0.5rem;
+    width: 12rem;
+    border-radius: 1rem;
+    background-color: var(--stitch-surface);
+    border: 1px solid var(--stitch-border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 0.25rem 0;
+    z-index: 50;
+    animation: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stitch-dropdown-header {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.stitch-dropdown-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--stitch-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+}
+
+.stitch-dropdown-role {
+    font-size: 0.75rem;
+    color: var(--stitch-text-muted);
+    text-transform: capitalize;
+    margin: 0;
+}
+
+.stitch-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--stitch-text-muted);
+    cursor: pointer;
+    transition: background-color 200ms ease-out, color 200ms ease-out;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+}
+
+.stitch-dropdown-item:hover {
+    background-color: #f8fafc;
+    color: var(--stitch-primary);
+}
+
+.stitch-dropdown-item-danger {
+    color: #dc2626;
+}
+
+.stitch-dropdown-item-danger:hover {
+    background-color: #fef2f2;
+    color: #b91c1c;
+}
+
+.stitch-dropdown-divider {
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+}
+
+/* --- Stitch Bottom Nav (Mobile) --- */
+.stitch-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    height: 4rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.5rem 1rem;
+}
+
+@media (min-width: 1024px) {
+    .stitch-bottom-nav {
+        display: none;
+    }
+}
+
+.stitch-bottom-nav-item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 44px;
+    min-width: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: 0.5rem;
+    transition: color 200ms ease-out;
+    cursor: pointer;
+    color: var(--stitch-text-muted);
+    text-decoration: none;
+}
+
+.stitch-bottom-nav-item:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--stitch-primary);
+}
+
+.stitch-bottom-nav-item:hover {
+    color: var(--stitch-primary);
+}
+
+.stitch-bottom-nav-item.active {
+    color: var(--stitch-primary);
+}
+
+/* Dark mode pseudo-support (since the actual app relies on globals for dark mode manually toggled or dark class) */
+@media (prefers-color-scheme: dark) {
+    .stitch-header {
+        background-color: rgba(29, 29, 31, 0.8);
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .stitch-header-title {
+        color: #ffffff;
+    }
+
+    .stitch-dropdown {
+        background-color: #1D1D1F;
+        border-color: #333;
+    }
+
+    .stitch-dropdown-header,
+    .stitch-dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .stitch-dropdown-name {
+        color: #ffffff;
+    }
+
+    .stitch-dropdown-item:hover {
+        background-color: #2d2d30;
+    }
+
+    .stitch-dropdown-item-danger:hover {
+        background-color: rgba(220, 38, 38, 0.1);
+    }
+
+    .stitch-bottom-nav {
+        background-color: rgba(29, 29, 31, 0.95);
+        border-top-color: rgba(255, 255, 255, 0.05);
+    }
+}

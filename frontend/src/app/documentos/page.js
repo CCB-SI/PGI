@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Badge from '@/components/Badge';
+import { Files, FileEdit, File, FolderOpen, Upload } from 'lucide-react';
 
 export default function DocumentManagement() {
     const { user, loading: authLoading } = useAuth();
@@ -154,7 +155,7 @@ export default function DocumentManagement() {
         <div className="animate-in">
             <div style={{ background: '#f8f9fa', padding: '30px', borderRadius: '8px', marginBottom: '40px', borderLeft: '5px solid #2196F3' }}>
                 <h1 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    📑 Gestão de Documentos
+                    <Files size={28} /> Gestão de Documentos
                 </h1>
                 <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
                     Cadastre novos modelos de PDF Interativo e gere documentos preenchidos automaticamente.
@@ -240,7 +241,7 @@ export default function DocumentManagement() {
                                     style={{ height: '42px', padding: '0 15px' }}
                                     title="Abre o formulário em branco para preencher manualmente no navegador"
                                 >
-                                    📝 Preencher Manualmente
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FileEdit size={16} /> Preencher Manualmente</span>
                                 </button>
 
                                 <button
@@ -249,7 +250,7 @@ export default function DocumentManagement() {
                                     disabled={docLoading || !docCandidateName.trim() || !docLocationId || !selectedTemplate}
                                     style={{ height: '42px', minWidth: '150px', background: '#2196F3' }}
                                 >
-                                    {docLoading ? 'Gerando...' : '📄 Gerar PDF (Auto)'}
+                                    {docLoading ? 'Gerando...' : <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><File size={16} /> Gerar PDF (Auto)</span>}
                                 </button>
                             </div>
                         </div>
@@ -260,7 +261,7 @@ export default function DocumentManagement() {
                         <section style={{ marginTop: '20px', paddingTop: '40px', borderTop: '2px solid #ddd' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                                 <div>
-                                    <h2 style={{ margin: '0 0 10px 0' }}>📂 Upload de Novos Modelos</h2>
+                                    <h2 style={{ margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><FolderOpen size={24} /> Upload de Novos Modelos</h2>
                                     <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>
                                         Faça upload de PDFs interativos (AcroForm) para padronizar e automatizar a emissão de novos documentos.
                                     </p>
@@ -297,7 +298,7 @@ export default function DocumentManagement() {
                                     disabled={templateLoading || !newTemplateName || !newTemplateFile}
                                     style={{ height: '42px', minWidth: '150px', background: '#2196F3' }}
                                 >
-                                    {templateLoading ? 'Enviando...' : '📤 Fazer Upload'}
+                                    {templateLoading ? 'Enviando...' : <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Upload size={16} /> Fazer Upload</span>}
                                 </button>
                             </form>
                         </section>
