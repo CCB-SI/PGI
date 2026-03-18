@@ -63,6 +63,27 @@ def migrate_db():
             if 'instructions' not in evt_columns:
                 print("Migrating database: adding instructions to events...")
                 cursor.execute("ALTER TABLE events ADD COLUMN instructions TEXT")
+            if 'event_type' not in evt_columns:
+                print("Migrating database: adding event_type to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN event_type TEXT DEFAULT 'Reunião Administrativa'")
+            if 'agenda_scope' not in evt_columns:
+                print("Migrating database: adding agenda_scope to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN agenda_scope TEXT DEFAULT 'Administrativa'")
+            if 'space_name' not in evt_columns:
+                print("Migrating database: adding space_name to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN space_name TEXT")
+            if 'estimated_people' not in evt_columns:
+                print("Migrating database: adding estimated_people to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN estimated_people INTEGER")
+            if 'duration_minutes' not in evt_columns:
+                print("Migrating database: adding duration_minutes to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN duration_minutes INTEGER")
+            if 'is_online' not in evt_columns:
+                print("Migrating database: adding is_online to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN is_online BOOLEAN DEFAULT 0")
+            if 'recurrence_rule' not in evt_columns:
+                print("Migrating database: adding recurrence_rule to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN recurrence_rule TEXT")
 
             conn.commit()
             conn.close()
@@ -77,6 +98,34 @@ def init_db():
         db_user = all_models.User(email="admin@secretaria.com", password_hash=hashed_password, role="admin")
         db.add(db_user)
         db.commit()
+
+    reference_locations = [
+        {
+            "name": "Jardim das Acácias",
+            "address": "Santa Isabel - SP",
+            "city": "Santa Isabel",
+            "description": "Referência logística: Salão Principal (300) e Sala de Reuniões (60).",
+        },
+        {
+            "name": "Igreja do Redentor",
+            "address": "Santa Isabel - SP",
+            "city": "Santa Isabel",
+            "description": "Referência logística: capacidade 300 pessoas.",
+        },
+        {
+            "name": "Gopouva (Guarulhos)",
+            "address": "Guarulhos - SP",
+            "city": "Guarulhos",
+            "description": "Local padrão para RRM.",
+        },
+    ]
+
+    for loc in reference_locations:
+        existing = db.query(all_models.Location).filter(all_models.Location.name == loc["name"]).first()
+        if not existing:
+            db.add(all_models.Location(**loc))
+
+    db.commit()
     db.close()
 
 init_db()

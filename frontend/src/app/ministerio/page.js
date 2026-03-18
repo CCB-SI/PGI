@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchMembers, createMember, updateMember, deleteMember, MINISTRY_ROLES } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -19,7 +19,7 @@ export default function MinisterioPage() {
     const [editName, setEditName] = useState('');
     const [editRole, setEditRole] = useState('');
 
-    const loadMembers = async () => {
+    const loadMembers = useCallback(async () => {
         try {
             const data = await fetchMembers();
             setMembers(data);
@@ -28,15 +28,16 @@ export default function MinisterioPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [addToast]);
 
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return;
+        if (!user) {
             router.push('/login');
-        } else if (user) {
+        } else {
             loadMembers();
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, loadMembers]);
 
     if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 

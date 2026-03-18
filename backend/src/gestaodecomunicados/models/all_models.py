@@ -23,6 +23,15 @@ class Category(Base):
 
     events = relationship("Event", back_populates="category_obj")
 
+
+class EventType(Base):
+    """Tipos de evento customizados persistentes"""
+    __tablename__ = "event_types"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    scope = Column(String, default="Administrativa", nullable=False)
+
 class MinistryMember(Base):
     """Irmãos do Ministério – cadastro prévio"""
     __tablename__ = "ministry_members"
@@ -107,8 +116,15 @@ class Event(Base):
 
     image_url = Column(String, nullable=True)
     category = Column(String, index=True)               # Nome da categoria (Batismo, Santa Ceia, etc.)
+    event_type = Column(String, index=True, default="Reunião Administrativa")
+    agenda_scope = Column(String, index=True, default="Administrativa")
     target_audience = Column(String, default="Público") # Público ou Ministerial
     instructions = Column(Text, nullable=True)          # Instruções especiais (ex: oração)
+    space_name = Column(String, nullable=True)
+    estimated_people = Column(Integer, nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
+    is_online = Column(Boolean, default=False)
+    recurrence_rule = Column(String, nullable=True)
 
     category_id = Column(Integer, ForeignKey("categories.id"))
     category_obj = relationship("Category", back_populates="events")

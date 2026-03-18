@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchDownloadCategories, createDownloadCategory, updateDownloadCategory, deleteDownloadCategory } from '@/services/api';
 import { useToast } from '@/context/ToastContext';
 
@@ -11,7 +11,7 @@ export default function CategoryManagementModal({ onClose }) {
     const [newDesc, setNewDesc] = useState('');
     const { addToast } = useToast();
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const data = await fetchDownloadCategories();
             setCategories(data);
@@ -20,11 +20,11 @@ export default function CategoryManagementModal({ onClose }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [addToast]);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
     const handleSave = async () => {
         if (!newName.trim()) return;

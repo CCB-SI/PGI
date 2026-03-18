@@ -3,14 +3,12 @@ import { useState, useEffect } from 'react';
 import LocationCard from '@/components/LocationCard';
 import ComunModal from '@/components/ComunModal';
 import ComunDetailModal from '@/components/ComunDetailModal';
-import { fetchLocations, createLocation, updateLocation, deleteLocation, uploadLocationPhoto, createSchedule, deleteSchedule, linkMemberToLocation, unlinkMemberFromLocation } from '@/services/api';
+import { fetchLocations, fetchEvents, createLocation, updateLocation, deleteLocation, uploadLocationPhoto, linkMemberToLocation, unlinkMemberFromLocation } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-import { useToast } from '@/context/ToastContext';
 
 export default function LocaisPage() {
     const { user } = useAuth();
-    const { addToast } = useToast();
     const [locations, setLocations] = useState([]);
     const [filteredLocations, setFilteredLocations] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -23,9 +21,31 @@ export default function LocaisPage() {
 
     const loadLocations = async () => {
         try {
-            const data = await fetchLocations();
-            setLocations(data);
-            setFilteredLocations(data);
+            const nowIso = new Date().toISOString();
+            const [locationsData, eventsData] = await Promise.all([
+                fetchLocations(),
+                fetchEvents({ start_date: nowIso, limit: 500 }),
+            ]);
+
+            const eventsByLocationId = (eventsData || []).reduce((acc, event) => {
+                if (!event.location_id) return acc;
+                if (!acc[event.location_id]) acc[event.location_id] = [];
+                acc[event.location_id].push(event);
+                return acc;
+            }, {});
+
+            const enrichedLocations = (locationsData || []).map((location) => {
+                const locationEvents = (eventsByLocationId[location.id] || []).sort(
+                    (a, b) => new Date(a.start_time) - new Date(b.start_time)
+                );
+                return {
+                    ...location,
+                    upcoming_events: locationEvents,
+                };
+            });
+
+            setLocations(enrichedLocations);
+            setFilteredLocations(enrichedLocations);
         } catch (error) {
             console.error("Failed to load locations");
         } finally {
@@ -62,7 +82,7 @@ export default function LocaisPage() {
         setShowForm(true);
     };
 
-    const handleSave = async (data, photoFile, existingId, pendingSchedules = [], removedScheduleIds = [], addedMemberIds = [], removedMemberIds = []) => {
+    const handleSave = async (data, photoFile, existingId, addedMemberIds = [], removedMemberIds = []) => {
         let saved;
         if (existingId) {
             saved = await updateLocation(existingId, data);
@@ -72,22 +92,6 @@ export default function LocaisPage() {
 
         if (photoFile) {
             saved = await uploadLocationPhoto(saved.id, photoFile);
-        }
-
-        // Criar horários pendentes
-        for (const s of pendingSchedules) {
-            await createSchedule(saved.id, {
-                event_type: s.event_type,
-                day_of_week: s.day_of_week,
-                time: s.time,
-                recurrence: s.recurrence,
-                specific_date: s.specific_date || null,
-            });
-        }
-
-        // Remover horários excluídos
-        for (const id of removedScheduleIds) {
-            await deleteSchedule(id);
         }
 
         // Vincular irmãos adicionados
@@ -171,6 +175,7 @@ export default function LocaisPage() {
             {showDetail && selectedLocation && (
                 <ComunDetailModal
                     location={selectedLocation}
+                    locationEvents={selectedLocation.upcoming_events || []}
                     onEdit={handleEditClick}
                     onDelete={handleDelete}
                     onClose={() => { setShowDetail(false); setSelectedLocation(null); }}

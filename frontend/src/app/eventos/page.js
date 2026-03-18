@@ -1,23 +1,45 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchLocations, fetchNews } from '@/services/api';
+import { fetchEvents, fetchNews, downloadEventsIcs, downloadMonthlyNoticesPdf, downloadAnnualAgendaPdf } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
-import { Printer, MessageCircle, MapPin, Navigation, Lock, Calendar } from 'lucide-react';
+import { Printer, MessageCircle, MapPin, Navigation, Calendar, Download, FileText, ExternalLink } from 'lucide-react';
 
 export default function AgendaPage() {
-    const [locations, setLocations] = useState([]);
+    const [events, setEvents] = useState([]);
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterCity, setFilterCity] = useState('');
+    const [icsLoading, setIcsLoading] = useState(false);
+    const [monthlyPdfLoading, setMonthlyPdfLoading] = useState(false);
+    const [annualPdfLoading, setAnnualPdfLoading] = useState(false);
+
+    const toGoogleDate = (dateInput) => {
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    };
+
+    const buildGoogleCalendarUrl = (event) => {
+        const start = toGoogleDate(event.start_time || event.nextDateObj);
+        const endBase = event.end_time ? new Date(event.end_time) : new Date(event.start_time || event.nextDateObj);
+        if (!event.end_time) endBase.setHours(endBase.getHours() + 1);
+        const end = toGoogleDate(endBase);
+
+        const title = event.title || event.event_type || 'Evento';
+        const details = event.description || event.instructions || '';
+        const location = `${event.locationName || ''} ${event.city ? `- ${event.city}` : ''}`.trim();
+
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${encodeURIComponent(`${start}/${end}`)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+    };
 
     const loadData = async () => {
         try {
-            const [locData, newsData] = await Promise.all([
-                fetchLocations(),
+            const [eventsData, newsData] = await Promise.all([
+                fetchEvents(),
                 fetchNews()
             ]);
-            setLocations(locData);
+            setEvents(eventsData || []);
             setNews(newsData);
         } catch (error) {
             console.error(error);
@@ -28,109 +50,24 @@ export default function AgendaPage() {
 
     useEffect(() => { loadData(); }, []);
 
-    // 1. Filtrar horários de todas as comuns (ignorando Culto e GEM)
-    const allEvents = [];
-    const filteredLocations = filterCity
-        ? locations.filter(loc => loc.city === filterCity)
-        : locations;
-
-    filteredLocations.forEach(loc => {
-        (loc.schedules || []).forEach(schedule => {
-            if (schedule.event_type !== 'Culto' && schedule.event_type !== 'GEM') {
-                allEvents.push({
-                    ...schedule,
-                    locationName: loc.name,
-                    city: loc.city,
-                    maps_url: loc.maps_url,
-                    waze_url: loc.waze_url,
-                });
-            }
-        });
-    });
-
-    // 2. Calcular a próxima data de cada evento
-    const getNextDate = (schedule) => {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-
-        // Se for data específica, usa a data exata
-        if (schedule.recurrence === 'Data Específica' && schedule.specific_date) {
-            const date = new Date(schedule.specific_date + 'T00:00:00');
-            // Se já passou mas é hoje, mantemos. Se for de ontem pra trás, poderíamos ocultar.
-            // Por enquanto, mostramos a data.
-            return { date, label: date.toLocaleDateString('pt-BR') };
-        }
-
-        const dayMap = { 'Domingo': 0, 'Segunda': 1, 'Terça': 2, 'Quarta': 3, 'Quinta': 4, 'Sexta': 5, 'Sábado': 6 };
-        const targetDay = dayMap[schedule.day_of_week];
-
-        // Recorrência "Semanal" -> próxima ocorrência
-        if (schedule.recurrence === 'Semanal') {
-            let nextDate = new Date();
-            // Se hoje é Sábado (6) e o evento é Domingo (0), dif = (0-6+7)%7 = 1 dia
-            let diff = (targetDay - nextDate.getDay() + 7) % 7;
-            // Considerando o horário? Vamos ignorar a hora por enquanto e focar no dia
-            nextDate.setDate(nextDate.getDate() + diff);
-            return { date: nextDate, label: `${nextDate.toLocaleDateString('pt-BR')} (Próximo)` };
-        }
-
-        // Funções auxiliares para calcular "1º", "2º", "Último"
-        const getNthDayOfMonth = (year, month, dayOfWeek, n) => {
-            let count = 0;
-            for (let d = 1; d <= 31; d++) {
-                const date = new Date(year, month, d);
-                if (date.getMonth() !== month) break; // Passou do mês
-                if (date.getDay() === dayOfWeek) {
-                    count++;
-                    if (count === n) return date;
-                }
-            }
-            return null;
-        };
-
-        const getLastDayOfMonth = (year, month, dayOfWeek) => {
-            let lastFound = null;
-            for (let d = 1; d <= 31; d++) {
-                const date = new Date(year, month, d);
-                if (date.getMonth() !== month) break;
-                if (date.getDay() === dayOfWeek) lastFound = date;
-            }
-            return lastFound;
-        };
-
-        // Calcula para o mês atual, se já passou, calcula pro próximo mês
-        let nextDate = null;
-        const attemptDateCalculation = (y, m) => {
-            if (schedule.recurrence === '1º do mês') return getNthDayOfMonth(y, m, targetDay, 1);
-            if (schedule.recurrence === '2º do mês') return getNthDayOfMonth(y, m, targetDay, 2);
-            if (schedule.recurrence === '3º do mês') return getNthDayOfMonth(y, m, targetDay, 3);
-            if (schedule.recurrence === '4º do mês') return getNthDayOfMonth(y, m, targetDay, 4);
-            if (schedule.recurrence === 'Último do mês') return getLastDayOfMonth(y, m, targetDay);
-            return null;
-        };
-
-        if (schedule.recurrence !== 'Anual') {
-            nextDate = attemptDateCalculation(year, month);
-            if (nextDate && nextDate < new Date(year, month, now.getDate())) {
-                // Já passou este mês, busca pro mês que vem
-                nextDate = attemptDateCalculation(year, month + 1);
-            }
-        }
-
-        if (nextDate) {
-            return { date: nextDate, label: nextDate.toLocaleDateString('pt-BR') };
-        }
-
-        // Fallback
-        return { date: new Date(9999, 11, 31), label: 'Varia de acordo com o ano' };
-    };
-
-    // Adicionamos a próxima data na lista
-    const processedEvents = allEvents.map(e => {
-        const nextDateInfo = getNextDate(e);
-        return { ...e, nextDateObj: nextDateInfo.date, nextDateLabel: nextDateInfo.label };
-    });
+    const processedEvents = (events || [])
+        .map((event) => {
+            const dateObj = new Date(event.start_time);
+            return {
+                ...event,
+                event_type: event.event_type || event.category || 'Evento',
+                locationName: event.location?.name || 'Local não informado',
+                city: event.location?.city || 'Cidade não informada',
+                maps_url: event.location?.map_url,
+                waze_url: event.location?.waze_url,
+                nextDateObj: dateObj,
+                nextDateLabel: Number.isNaN(dateObj.getTime()) ? 'Data inválida' : dateObj.toLocaleDateString('pt-BR'),
+                timeLabel: Number.isNaN(dateObj.getTime())
+                    ? '--:--'
+                    : dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            };
+        })
+        .filter((event) => (filterCity ? event.city === filterCity : true));
 
     // Ordenar cronologicamente
     processedEvents.sort((a, b) => a.nextDateObj - b.nextDateObj);
@@ -166,10 +103,77 @@ export default function AgendaPage() {
     const activeNews = news || [];
 
     const publicNews = activeNews.filter(n => n.target_audience === 'Público' || !n.target_audience);
-    const ministerialNews = activeNews.filter(n => n.target_audience === 'Ministerial');
-
     const handlePrint = () => {
         window.print();
+    };
+
+    const handleExportIcs = async () => {
+        setIcsLoading(true);
+        try {
+            const blob = await downloadEventsIcs({ city: filterCity || undefined });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'agenda-publica.ics';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+            alert('Não foi possível exportar o arquivo iCal.');
+        } finally {
+            setIcsLoading(false);
+        }
+    };
+
+    const handleExportMonthlyPdf = async () => {
+        const now = new Date();
+        setMonthlyPdfLoading(true);
+        try {
+            const blob = await downloadMonthlyNoticesPdf({
+                year: now.getFullYear(),
+                month: now.getMonth() + 1,
+                city: filterCity || undefined,
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `lista-avisos-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+            alert('Não foi possível gerar o PDF mensal.');
+        } finally {
+            setMonthlyPdfLoading(false);
+        }
+    };
+
+    const handleExportAnnualPdf = async () => {
+        const now = new Date();
+        setAnnualPdfLoading(true);
+        try {
+            const blob = await downloadAnnualAgendaPdf({
+                year: now.getFullYear(),
+                city: filterCity || undefined,
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `agenda-anual-${now.getFullYear()}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+            alert('Não foi possível gerar o PDF anual.');
+        } finally {
+            setAnnualPdfLoading(false);
+        }
     };
 
     const handleShareWhatsApp = () => {
@@ -180,7 +184,7 @@ export default function AgendaPage() {
                 text += `_${city}_\n`;
                 grouped[type][city].forEach(e => {
                     text += `• ${e.locationName}\n`;
-                    text += `  Data: ${e.nextDateLabel} | ${e.day_of_week} às ${e.time} (${e.recurrence})\n`;
+                    text += `  Data: ${e.nextDateLabel} às ${e.timeLabel}\n`;
                 });
                 text += '\n';
             });
@@ -198,6 +202,15 @@ export default function AgendaPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }} className="no-print">
                 <h1 className="section-title" style={{ margin: 0 }}>Agenda Regional</h1>
                 <div style={{ display: 'flex', gap: '10px' }}>
+                    <button className="btn-secondary" onClick={handleExportIcs} disabled={icsLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Download size={18} /> {icsLoading ? 'Gerando...' : 'iCal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportMonthlyPdf} disabled={monthlyPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={18} /> {monthlyPdfLoading ? 'Gerando...' : 'PDF Mensal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportAnnualPdf} disabled={annualPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={18} /> {annualPdfLoading ? 'Gerando...' : 'PDF Anual'}
+                    </button>
                     <button className="btn-secondary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Printer size={18} /> Exportar PDF
                     </button>
@@ -229,7 +242,7 @@ export default function AgendaPage() {
             </div>
 
             <p style={{ marginBottom: '32px', color: 'var(--text-secondary)' }} className="no-print">
-                Visão consolidada de Ensaios, Reuniões e Eventos (exceto Cultos e GEM) agrupada por cidade e ordenada pela data mais próxima.
+                Lista pública de avisos com Batismos, Santas Ceias, Mocidade e Ensaios Regionais.
             </p>
 
             <div id="print-only-table" className="print-only" style={{ display: 'none' }}>
@@ -252,10 +265,10 @@ export default function AgendaPage() {
                                 {printGrouped[type].map(e => (
                                     <tr key={e.id || e._tempId} style={{ borderBottom: '1px solid #ccc' }}>
                                         <td style={{ width: '50px', padding: '4px 2px', verticalAlign: 'top' }}>{e.nextDateLabel.substring(0, 5)}</td>
-                                        <td style={{ width: '40px', padding: '4px 2px', verticalAlign: 'top' }}>{e.day_of_week.substring(0, 3)}</td>
-                                        <td style={{ width: '50px', padding: '4px 2px', verticalAlign: 'top' }}>{e.time}</td>
+                                        <td style={{ width: '40px', padding: '4px 2px', verticalAlign: 'top' }}></td>
+                                        <td style={{ width: '50px', padding: '4px 2px', verticalAlign: 'top' }}>{e.timeLabel}</td>
                                         <td style={{ padding: '4px 2px', verticalAlign: 'top' }}>
-                                            {e.city} - {e.locationName} {e.instructions ? `- ${e.instructions}` : ''}
+                                            {e.city} - {e.locationName} {e.description ? `- ${e.description}` : ''}
                                         </td>
                                     </tr>
                                 ))}
@@ -272,31 +285,6 @@ export default function AgendaPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                             <tbody>
                                 {publicNews.map(n => {
-                                    return (
-                                        <tr key={n.id} style={{ borderBottom: '1px solid #ccc' }}>
-                                            <td style={{ width: '60px', padding: '8px 2px', verticalAlign: 'top' }}>
-                                                {n.date || '--/--'}
-                                            </td>
-                                            <td style={{ padding: '8px 2px', verticalAlign: 'top' }}>
-                                                <strong>{n.title}</strong>
-                                                <div style={{ marginTop: '4px' }}>{n.content}</div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-
-                {ministerialNews.length > 0 && (
-                    <div style={{ marginBottom: '16px', pageBreakInside: 'avoid' }}>
-                        <div style={{ background: '#e0e0e0', border: '2px solid #000', textAlign: 'center', padding: '4px', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '14px', marginBottom: '6px' }}>
-                            AVISOS ( SOMENTE PARA O MINISTÉRIO )
-                        </div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                            <tbody>
-                                {ministerialNews.map(n => {
                                     return (
                                         <tr key={n.id} style={{ borderBottom: '1px solid #ccc' }}>
                                             <td style={{ width: '60px', padding: '8px 2px', verticalAlign: 'top' }}>
@@ -355,16 +343,11 @@ export default function AgendaPage() {
                                                             {e.waze_url && <a href={e.waze_url} target="_blank" rel="noopener noreferrer" style={{ color: '#33CCFF', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}><Navigation size={14} /> Waze</a>}
                                                         </div>
                                                     </div>
-                                                    {e.target_audience === 'Ministerial' && (
-                                                        <span style={{ color: 'var(--warning-color)' }} title="Exclusivo Ministerial">
-                                                            <Lock size={18} />
-                                                        </span>
-                                                    )}
                                                 </div>
 
-                                                {e.instructions && (
+                                                {e.description && (
                                                     <div style={{ background: '#f5f5f5', padding: '10px', borderRadius: '4px', fontSize: '0.85rem', color: '#444', borderLeft: '3px solid #ccc' }}>
-                                                        <strong>Obs:</strong> {e.instructions}
+                                                        <strong>Obs:</strong> {e.description}
                                                     </div>
                                                 )}
 
@@ -373,12 +356,31 @@ export default function AgendaPage() {
                                                         <span style={{ fontWeight: '600', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                             <Calendar size={16} /> {e.nextDateLabel}
                                                         </span>
-                                                        <span>{e.day_of_week} às {e.time}</span>
+                                                        <span>às {e.timeLabel}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                        <small style={{ opacity: 0.8 }}>Recorrência:</small>
-                                                        <small style={{ fontWeight: '500' }}>{e.recurrence}</small>
+                                                        <small style={{ opacity: 0.8 }}>Tipo:</small>
+                                                        <small style={{ fontWeight: '500' }}>{e.event_type}</small>
                                                     </div>
+                                                </div>
+
+                                                <div style={{ marginTop: '4px' }}>
+                                                    <a
+                                                        href={buildGoogleCalendarUrl(e)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            fontSize: '0.85rem',
+                                                            color: 'var(--accent-color)',
+                                                            textDecoration: 'none',
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        <ExternalLink size={14} /> Google Agenda
+                                                    </a>
                                                 </div>
                                             </div>
                                         ))}

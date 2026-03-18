@@ -1,25 +1,35 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { fetchMembers, createMember, updateMember, deleteMember, MINISTRY_ROLES, fetchNews, fetchLocations, fetchUsers, createUser, deleteUser } from '@/services/api';
+import { useState, useEffect, useCallback } from 'react';
+import {
+    fetchMembers,
+    createMember,
+    updateMember,
+    deleteMember,
+    MINISTRY_ROLES,
+    fetchNews,
+    downloadEventsIcs,
+    downloadMonthlyNoticesPdf,
+    downloadAnnualAgendaPdf,
+} from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Badge from '@/components/Badge';
-import { Lock } from 'lucide-react';
+import { Lock, Download, FileText } from 'lucide-react';
 
 export default function MinisterialDashboard() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, token, loading: authLoading } = useAuth();
     const { addToast } = useToast();
     const router = useRouter();
 
     // States
     const [members, setMembers] = useState([]);
     const [news, setNews] = useState([]);
-    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [locations, setLocations] = useState([]);
-    const [systemUsers, setSystemUsers] = useState([]);
+    const [icsLoading, setIcsLoading] = useState(false);
+    const [monthlyPdfLoading, setMonthlyPdfLoading] = useState(false);
+    const [annualPdfLoading, setAnnualPdfLoading] = useState(false);
 
     // States for Ministry Member Form states
     const [actionLoading, setActionLoading] = useState(false);
@@ -29,49 +39,97 @@ export default function MinisterialDashboard() {
     const [editName, setEditName] = useState('');
     const [editRole, setEditRole] = useState('Ancião');
 
-    const loadDashboardData = async () => {
+
+    const loadDashboardData = useCallback(async () => {
         try {
-            const [membersData, newsData, locationsData] = await Promise.all([
+            const [membersData, newsData] = await Promise.all([
                 fetchMembers(),
                 fetchNews(),
-                fetchLocations()
             ]);
 
             setMembers(membersData);
-            setLocations(locationsData);
-
-            // Filter only Ministerial News
             setNews(newsData.filter(n => n.target_audience === 'Ministerial'));
 
-            // Extract and filter only Ministerial Events (RMA, RRM, Ministerial)
-            const allEvents = [];
-            locationsData.forEach(loc => {
-                (loc.schedules || []).forEach(schedule => {
-                    if (['Ministerial', 'RMA', 'RRM'].includes(schedule.event_type)) {
-                        allEvents.push({
-                            ...schedule,
-                            locationName: loc.name,
-                            city: loc.city,
-                        });
-                    }
-                });
-            });
-            setEvents(allEvents);
         } catch (err) {
             console.error(err);
             addToast('Erro ao carregar dashboard ministerial', 'error');
         } finally {
             setLoading(false);
         }
+    }, [addToast]);
+
+
+    const saveBlob = (blob, filename) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
     };
 
+    const handleExportIcs = async () => {
+        setIcsLoading(true);
+        try {
+            const blob = await downloadEventsIcs({ agenda_scope: 'Administrativa' });
+            saveBlob(blob, 'agenda-administrativa.ics');
+            addToast('Arquivo iCal exportado com sucesso');
+        } catch (err) {
+            addToast('Erro ao exportar iCal', 'error');
+        } finally {
+            setIcsLoading(false);
+        }
+    };
+
+    const handleExportMonthlyPdf = async () => {
+        const now = new Date();
+        setMonthlyPdfLoading(true);
+        try {
+            const blob = await downloadMonthlyNoticesPdf({
+                year: now.getFullYear(),
+                month: now.getMonth() + 1,
+            });
+            saveBlob(blob, `lista-avisos-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}.pdf`);
+            addToast('PDF mensal gerado com sucesso');
+        } catch (err) {
+            addToast(err.message || 'Erro ao gerar PDF mensal', 'error');
+        } finally {
+            setMonthlyPdfLoading(false);
+        }
+    };
+
+    const handleExportAnnualPdf = async () => {
+        const now = new Date();
+        setAnnualPdfLoading(true);
+        try {
+            const blob = await downloadAnnualAgendaPdf({
+                year: now.getFullYear(),
+                agenda_scope: 'Administrativa',
+            });
+            saveBlob(blob, `agenda-anual-${now.getFullYear()}.pdf`);
+            addToast('PDF anual gerado com sucesso');
+        } catch (err) {
+            addToast(err.message || 'Erro ao gerar PDF anual', 'error');
+        } finally {
+            setAnnualPdfLoading(false);
+        }
+    };
+
+
+
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return;
+        if (!user) {
             router.push('/login');
-        } else if (user) {
+        } else if (!token) {
+            addToast('Sessão inválida. Faça login novamente.', 'warning');
+            router.push('/login');
+        } else {
             loadDashboardData();
         }
-    }, [user, authLoading, router]);
+    }, [user, token, authLoading, router, addToast, loadDashboardData]);
 
     if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 
@@ -137,8 +195,18 @@ export default function MinisterialDashboard() {
                 <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
                     Painel exclusivo para avisos e reuniões regionais do ministério.
                 </p>
-                <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <Link href="/downloads" className="btn-secondary">Acessar Circulares (Downloads)</Link>
+                    <Link href="/agenda-ministerial" className="btn-secondary">Agenda Ministerial</Link>
+                    <button className="btn-secondary" onClick={handleExportIcs} disabled={icsLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Download size={16} /> {icsLoading ? 'Exportando...' : 'Exportar iCal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportMonthlyPdf} disabled={monthlyPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={16} /> {monthlyPdfLoading ? 'Gerando...' : 'PDF Mensal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportAnnualPdf} disabled={annualPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={16} /> {annualPdfLoading ? 'Gerando...' : 'PDF Anual'}
+                    </button>
                 </div>
             </div>
 
@@ -165,32 +233,6 @@ export default function MinisterialDashboard() {
                                             <p style={{ whiteSpace: 'pre-line' }}>{n.content}</p>
                                         </div>
                                     </article>
-                                ))}
-                            </div>
-                        )}
-                    </section>
-
-                    {/* Reuniões */}
-                    <section>
-                        <h2 style={{ borderBottom: '2px solid #ddd', paddingBottom: '10px', marginBottom: '20px' }}>Agenda de Reuniões Ministeriais</h2>
-                        {events.length === 0 ? (
-                            <p style={{ color: 'var(--text-secondary)' }}>Nenhuma reunião ministerial programada.</p>
-                        ) : (
-                            <div className="agenda-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                                {events.map((e, idx) => (
-                                    <div key={idx} className="agenda-card" style={{ background: 'var(--surface-color)', border: '1px solid var(--border-color)', borderLeft: '5px solid #424242', borderRadius: 'var(--border-radius)', padding: '16px' }}>
-                                        <h4 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', color: 'var(--primary-color)' }}>{e.locationName}</h4>
-                                        <p style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{e.city}</p>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
-                                            <span style={{ fontWeight: '600' }}>{e.event_type}</span>
-                                            <span>{e.day_of_week} às {e.time}</span>
-                                        </div>
-                                        {e.instructions && (
-                                            <div style={{ marginTop: '10px', background: '#f5f5f5', padding: '8px', borderRadius: '4px', fontSize: '0.85rem' }}>
-                                                <strong>Obs:</strong> {e.instructions}
-                                            </div>
-                                        )}
-                                    </div>
                                 ))}
                             </div>
                         )}
@@ -272,6 +314,7 @@ export default function MinisterialDashboard() {
                     </section>
                 </div>
             )}
+
         </div>
     );
 }

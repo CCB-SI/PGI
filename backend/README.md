@@ -41,3 +41,31 @@ Este é o backend do sistema Gestão de Comunicados, construído com **FastAPI**
 
 ## Estrutura
 - `src/gestaodecomunicados`: Código fonte da API
+
+## Testes automatizados
+
+Foram adicionados testes de integração para:
+- CRUD de eventos com validação de regras (conflito de espaço, lotação, online)
+- Exportação de PDF mensal e anual
+
+Para executar:
+
+```bash
+cd backend
+
+# Com uv
+uv run pytest -q
+
+# Com ambiente Python tradicional
+python -m pytest -q
+```
+
+Arquivos de teste:
+- `tests/test_events_api.py`
+- `tests/test_reports_api.py`
+
+## Novos endpoints de exportação
+
+- `GET /api/v1/events.ics`
+- `GET /api/v1/reports/monthly-notices.pdf?year=2026&month=3`
+- `GET /api/v1/reports/annual-agenda.pdf?year=2026&agenda_scope=Administrativa`

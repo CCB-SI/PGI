@@ -1,28 +1,15 @@
 import { useState, useEffect } from 'react';
-import { EVENT_TYPES, DAYS_OF_WEEK, TIMES, RECURRENCES, fetchMembers } from '@/services/api';
-import { Trash2, Plus } from 'lucide-react';
+import { fetchMembers } from '@/services/api';
+
+const EMPTY_FORM = {
+    name: '', address: '', city: 'Santa Isabel', description: '',
+    latitude: '', longitude: '', map_url: '', waze_url: '',
+};
 
 export default function ComunModal({ location, isEditing, onSave, onClose }) {
-    const emptyForm = {
-        name: '', address: '', city: 'Santa Isabel', description: '',
-        latitude: '', longitude: '', map_url: '', waze_url: '',
-    };
-
-    const [form, setForm] = useState(emptyForm);
+    const [form, setForm] = useState({ ...EMPTY_FORM });
     const [photoFile, setPhotoFile] = useState(null);
     const [saving, setSaving] = useState(false);
-
-    // Schedule builder
-    const [schedules, setSchedules] = useState([]);
-    const [newSchedule, setNewSchedule] = useState({
-        event_type: EVENT_TYPES[0],
-        day_of_week: DAYS_OF_WEEK[0],
-        time: TIMES[16],
-        recurrence: RECURRENCES[0],
-    });
-    const [customTime, setCustomTime] = useState('');
-    const [useCustomTime, setUseCustomTime] = useState(false);
-    const [specificDate, setSpecificDate] = useState('');
 
     // Member selector
     const [allMembers, setAllMembers] = useState([]);
@@ -44,47 +31,15 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                 map_url: location.map_url || '',
                 waze_url: location.waze_url || '',
             });
-            setSchedules(location.schedules || []);
             setSelectedMemberIds((location.members || []).map(m => m.id));
         } else if (!location) {
-            setForm(emptyForm);
-            setSchedules([]);
+            setForm({ ...EMPTY_FORM });
             setSelectedMemberIds([]);
         }
     }, [location, isEditing]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleScheduleChange = (e) => {
-        const { name, value } = e.target;
-        if (name === 'time' && value === '__custom__') {
-            setUseCustomTime(true);
-            return;
-        }
-        if (name === 'time') setUseCustomTime(false);
-        setNewSchedule({ ...newSchedule, [name]: value });
-    };
-
-    const addSchedule = () => {
-        const time = useCustomTime ? customTime.trim() : newSchedule.time;
-        if (!time) { alert('Informe o horário.'); return; }
-        if (newSchedule.recurrence === 'Data Específica' && !specificDate) {
-            alert('Informe a data do evento.'); return;
-        }
-        setSchedules([...schedules, {
-            ...newSchedule, time,
-            specific_date: newSchedule.recurrence === 'Data Específica' ? specificDate : null,
-            _pending: true, _tempId: Date.now(),
-        }]);
-        setUseCustomTime(false);
-        setCustomTime('');
-        setSpecificDate('');
-    };
-
-    const removeSchedule = (index) => {
-        setSchedules(schedules.filter((_, i) => i !== index));
     };
 
     const toggleMember = (memberId) => {
@@ -103,16 +58,11 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                 longitude: form.longitude ? parseFloat(form.longitude) : null,
             };
 
-            const pendingSchedules = schedules.filter(s => s._pending);
-            const originalIds = (location?.schedules || []).map(s => s.id);
-            const currentIds = schedules.filter(s => s.id).map(s => s.id);
-            const removedIds = originalIds.filter(id => !currentIds.includes(id));
-
             const originalMemberIds = (location?.members || []).map(m => m.id);
             const addedMemberIds = selectedMemberIds.filter(id => !originalMemberIds.includes(id));
             const removedMemberIds = originalMemberIds.filter(id => !selectedMemberIds.includes(id));
 
-            await onSave(data, photoFile, location?.id, pendingSchedules, removedIds, addedMemberIds, removedMemberIds);
+            await onSave(data, photoFile, location?.id, addedMemberIds, removedMemberIds);
         } catch (err) {
             alert(err.message);
         } finally {
@@ -181,62 +131,6 @@ export default function ComunModal({ location, isEditing, onSave, onClose }) {
                         <div className="form-group full-width">
                             <label>Foto da Comum</label>
                             <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhotoFile(e.target.files[0])} />
-                        </div>
-                    </div>
-
-                    {/* === Schedule Builder === */}
-                    <div className="schedule-builder">
-                        <h3>Horários e Eventos</h3>
-                        {schedules.length > 0 && (
-                            <div className="schedule-list">
-                                {schedules.map((s, i) => (
-                                    <div key={s.id || s._tempId} className="schedule-item">
-                                        <span className="schedule-type-badge">{s.event_type}</span>
-                                        <span>{s.day_of_week}</span>
-                                        <span className="schedule-time">{s.time}</span>
-                                        <span className="schedule-recurrence">
-                                            {s.recurrence}
-                                            {s.recurrence === 'Data Específica' && s.specific_date
-                                                ? ` · ${new Date(s.specific_date + 'T00:00:00').toLocaleDateString('pt-BR')}`
-                                                : ''}
-                                        </span>
-                                        <button type="button" className="schedule-remove" onClick={() => removeSchedule(i)} aria-label="Remover">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div className="schedule-add">
-                            <select name="event_type" value={newSchedule.event_type} onChange={handleScheduleChange}>
-                                {EVENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                            <select name="day_of_week" value={newSchedule.day_of_week} onChange={handleScheduleChange}>
-                                {DAYS_OF_WEEK.map(d => <option key={d} value={d}>{d}</option>)}
-                            </select>
-                            {useCustomTime ? (
-                                <div style={{ display: 'flex', gap: '4px', flex: 1, minWidth: '120px' }}>
-                                    <input type="text" value={customTime} onChange={(e) => setCustomTime(e.target.value)}
-                                        placeholder="Ex: 16h45"
-                                        style={{ flex: 1, padding: '8px 10px', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-sm)', fontSize: '0.85rem' }}
-                                    />
-                                    <button type="button" onClick={() => setUseCustomTime(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--accent-color)' }}>voltar</button>
-                                </div>
-                            ) : (
-                                <select name="time" value={newSchedule.time} onChange={handleScheduleChange}>
-                                    {TIMES.map(t => <option key={t} value={t}>{t}</option>)}
-                                    <option value="__custom__">Outro...</option>
-                                </select>
-                            )}
-                            <select name="recurrence" value={newSchedule.recurrence} onChange={handleScheduleChange}>
-                                {RECURRENCES.map(r => <option key={r} value={r}>{r}</option>)}
-                            </select>
-                            {newSchedule.recurrence === 'Data Específica' && (
-                                <input type="date" value={specificDate} onChange={(e) => setSpecificDate(e.target.value)} className="schedule-date-input" />
-                            )}
-                            <button type="button" className="btn-add-schedule" onClick={addSchedule} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Plus size={16} /> Adicionar
-                            </button>
                         </div>
                     </div>
 

@@ -30,7 +30,7 @@ def create_user(
     current_user: User = Depends(auth.require_admin)
 ):
     """
-    Cria um novo usuário (admin ou editor). Apenas admins podem criar.
+    Cria um novo usuário (admin, editor ou ministerial). Apenas admins podem criar.
     """
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -39,7 +39,7 @@ def create_user(
     hashed_password = get_password_hash(user.password)
     
     # Previne criação com role inválida. Fallback para 'editor'
-    role = user.role if user.role in ['admin', 'editor'] else 'editor'
+    role = user.role if user.role in ['admin', 'editor', 'ministerial'] else 'editor'
 
     new_user = User(
         email=user.email,

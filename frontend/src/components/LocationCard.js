@@ -1,19 +1,21 @@
+import Image from 'next/image';
 import { getPhotoUrl } from '@/services/api';
 import { MapPin, Clock } from 'lucide-react';
 
-export default function LocationCard({ name, city, address, photo_url, schedules = [], onClick }) {
+export default function LocationCard({ name, city, address, photo_url, upcoming_events = [], onClick }) {
     const photoUrl = getPhotoUrl(photo_url);
 
-    // Pega o primeiro culto para preview
-    const culto = schedules.find(s => s.event_type === 'Culto');
-    const previewText = culto ? `${culto.day_of_week} ${culto.time}` : null;
-    const totalSchedules = schedules.length;
+    const nextEvent = (upcoming_events || [])[0];
+    const previewText = nextEvent
+        ? `${new Date(nextEvent.start_time).toLocaleDateString('pt-BR')} às ${new Date(nextEvent.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+        : null;
+    const totalEvents = (upcoming_events || []).length;
 
     return (
         <div className="location-card" onClick={onClick} style={{ cursor: 'pointer' }}>
             {photoUrl ? (
                 <div className="location-photo">
-                    <img src={photoUrl} alt={name} />
+                    <Image src={photoUrl} alt={name} width={800} height={450} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
             ) : (
                 <div className="location-photo location-photo-placeholder">
@@ -28,7 +30,7 @@ export default function LocationCard({ name, city, address, photo_url, schedules
                 <span className="location-city">{city}</span>
                 <p className="address" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> {address}</p>
                 {previewText && (
-                    <p className="worship-badge" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={16} /> {previewText}{totalSchedules > 1 ? ` +${totalSchedules - 1}` : ''}</p>
+                    <p className="worship-badge" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={16} /> {previewText}{totalEvents > 1 ? ` +${totalEvents - 1}` : ''}</p>
                 )}
             </div>
         </div>

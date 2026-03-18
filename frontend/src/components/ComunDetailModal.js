@@ -1,14 +1,14 @@
 'use client';
+import Image from 'next/image';
 import { getPhotoUrl } from '@/services/api';
 import { MapPin, Clock, Users, FileText } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
-export default function ComunDetailModal({ location, onEdit, onDelete, onClose }) {
+export default function ComunDetailModal({ location, locationEvents = [], onEdit, onDelete, onClose }) {
     const { user } = useAuth();
     if (!location) return null;
 
     const photoUrl = getPhotoUrl(location.photo_url);
-    const schedules = location.schedules || [];
     const members = location.members || [];
 
     const handleBackdropClick = (e) => {
@@ -25,12 +25,9 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
         ? `https://www.google.com/maps?q=${location.latitude},${location.longitude}`
         : location.map_url;
 
-    // Agrupa horários por tipo de evento
-    const groupedSchedules = {};
-    schedules.forEach(s => {
-        if (!groupedSchedules[s.event_type]) groupedSchedules[s.event_type] = [];
-        groupedSchedules[s.event_type].push(s);
-    });
+    const upcomingEvents = [...(locationEvents || [])]
+        .sort((a, b) => new Date(a.start_time) - new Date(b.start_time))
+        .slice(0, 8);
 
     // Agrupa membros por cargo
     const groupedMembers = {};
@@ -46,7 +43,7 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
 
                 {photoUrl && (
                     <div className="detail-photo">
-                        <img src={photoUrl} alt={location.name} />
+                        <Image src={photoUrl} alt={location.name} width={1000} height={600} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                 )}
 
@@ -71,27 +68,27 @@ export default function ComunDetailModal({ location, onEdit, onDelete, onClose }
                         </div>
                     </div>
 
-                    {/* Horários agrupados por tipo */}
-                    {Object.keys(groupedSchedules).length > 0 && (
+                    {upcomingEvents.length > 0 && (
                         <div className="detail-section">
-                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={18} /> Horários</h4>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={18} /> Próximos Eventos</h4>
                             <div className="schedule-groups">
-                                {Object.entries(groupedSchedules).map(([type, items]) => (
-                                    <div key={type} className="schedule-group">
-                                        <span className="schedule-group-label">{type}</span>
+                                {upcomingEvents.map((event) => {
+                                    const startDate = new Date(event.start_time);
+                                    const endDate = event.end_time ? new Date(event.end_time) : null;
+                                    return (
+                                    <div key={event.id} className="schedule-group">
+                                        <span className="schedule-group-label">{event.event_type || 'Evento'}</span>
                                         <div className="schedule-group-items">
-                                            {items.map(s => (
-                                                <span key={s.id} className="schedule-tag">
-                                                    {s.day_of_week} {s.time}
-                                                    <small> · {s.recurrence}</small>
-                                                    {s.recurrence === 'Data Específica' && s.specific_date && (
-                                                        <small> · {new Date(s.specific_date + 'T00:00:00').toLocaleDateString('pt-BR')}</small>
-                                                    )}
-                                                </span>
-                                            ))}
+                                            <span className="schedule-tag">
+                                                {startDate.toLocaleDateString('pt-BR')} às {startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                {endDate && (
+                                                    <small> · até {endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                                                )}
+                                                {event.title && <small> · {event.title}</small>}
+                                            </span>
                                         </div>
                                     </div>
-                                ))}
+                                )})}
                             </div>
                         </div>
                     )}

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchUsers, createUser, deleteUser } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -21,7 +21,7 @@ export default function AcessosDashboard() {
     const [newUserRole, setNewUserRole] = useState('editor');
     const [actionLoadingUser, setActionLoadingUser] = useState(false);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const usersData = await fetchUsers();
             setSystemUsers(usersData);
@@ -31,12 +31,13 @@ export default function AcessosDashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [addToast]);
 
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return;
+        if (!user) {
             router.push('/login');
-        } else if (user) {
+        } else {
             // Apenas Admin tem acesso a Gestão de Acessos
             if (user.role !== 'admin') {
                 router.push('/');
@@ -45,7 +46,7 @@ export default function AcessosDashboard() {
                 loadData();
             }
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, addToast, loadData]);
 
     if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 
@@ -102,7 +103,7 @@ export default function AcessosDashboard() {
                             <div>
                                 <h2 style={{ margin: '0 0 10px 0' }}>Contas do Sistema</h2>
                                 <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>
-                                    Adicione novos Editores (que podem preencher documentos e murais) ou Administradores Gerais.
+                                    Adicione novos usuários Ministeriais (acesso restrito de leitura), Editores ou Administradores Gerais.
                                 </p>
                             </div>
                             <Badge text="ADMIN" style={{ background: '#f44336', color: 'white', border: 'none' }} />
@@ -134,6 +135,7 @@ export default function AcessosDashboard() {
                             <div style={{ flex: '1 1 120px' }}>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Nível de Acesso</label>
                                 <select value={newUserRole} onChange={e => setNewUserRole(e.target.value)} style={{ width: '100%', padding: '10px' }}>
+                                    <option value="ministerial">Ministerial (Leitura Restrita)</option>
                                     <option value="editor">Editor (Padrão)</option>
                                     <option value="admin">Administrador Geral</option>
                                 </select>

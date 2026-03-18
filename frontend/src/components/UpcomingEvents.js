@@ -1,108 +1,45 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { fetchLocations } from '@/services/api';
+import { fetchEvents } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
 import { Calendar } from 'lucide-react';
 
 export default function UpcomingEvents() {
-    const [locations, setLocations] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterCity, setFilterCity] = useState('');
     const [filterType, setFilterType] = useState('');
 
     useEffect(() => {
-        fetchLocations().then(setLocations).catch(console.error).finally(() => setLoading(false));
+        const nowIso = new Date().toISOString();
+        fetchEvents({ start_date: nowIso })
+            .then(setEvents)
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }, []);
 
-    const getNextDate = (schedule) => {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
+    const normalizedEvents = (events || []).map(event => ({
+        ...event,
+        locationName: event.location?.name || 'Local não informado',
+        city: event.location?.city || 'Cidade não informada',
+        nextDateObj: new Date(event.start_time),
+        nextDateLabel: new Date(event.start_time).toLocaleDateString('pt-BR'),
+        nextTimeLabel: new Date(event.start_time).toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+        }),
+    }));
 
-        if (schedule.recurrence === 'Data Específica' && schedule.specific_date) {
-            const date = new Date(schedule.specific_date + 'T00:00:00');
-            return { date, label: date.toLocaleDateString('pt-BR') };
-        }
+    const filteredEvents = normalizedEvents
+        .filter(event => (filterCity ? event.city === filterCity : true))
+        .filter(event => (filterType ? event.event_type === filterType : true));
 
-        const dayMap = { 'Domingo': 0, 'Segunda': 1, 'Terça': 2, 'Quarta': 3, 'Quinta': 4, 'Sexta': 5, 'Sábado': 6 };
-        const targetDay = dayMap[schedule.day_of_week];
+    filteredEvents.sort((a, b) => a.nextDateObj - b.nextDateObj);
+    const visibleEvents = filteredEvents.slice(0, 4);
 
-        if (schedule.recurrence === 'Semanal') {
-            let nextDate = new Date();
-            let diff = (targetDay - nextDate.getDay() + 7) % 7;
-            nextDate.setDate(nextDate.getDate() + diff);
-            return { date: nextDate, label: `${nextDate.toLocaleDateString('pt-BR')} (Próximo)` };
-        }
-
-        const getNthDayOfMonth = (y, m, d, n) => {
-            let count = 0;
-            for (let i = 1; i <= 31; i++) {
-                const dt = new Date(y, m, i);
-                if (dt.getMonth() !== m) break;
-                if (dt.getDay() === d) {
-                    count++;
-                    if (count === n) return dt;
-                }
-            }
-            return null;
-        };
-
-        const getLastDayOfMonth = (y, m, d) => {
-            let last = null;
-            for (let i = 1; i <= 31; i++) {
-                const dt = new Date(y, m, i);
-                if (dt.getMonth() !== m) break;
-                if (dt.getDay() === d) last = dt;
-            }
-            return last;
-        };
-
-        const getAttempt = (y, m) => {
-            if (schedule.recurrence === '1º do mês') return getNthDayOfMonth(y, m, targetDay, 1);
-            if (schedule.recurrence === '2º do mês') return getNthDayOfMonth(y, m, targetDay, 2);
-            if (schedule.recurrence === '3º do mês') return getNthDayOfMonth(y, m, targetDay, 3);
-            if (schedule.recurrence === '4º do mês') return getNthDayOfMonth(y, m, targetDay, 4);
-            if (schedule.recurrence === 'Último do mês') return getLastDayOfMonth(y, m, targetDay);
-            return null;
-        }
-
-        if (schedule.recurrence !== 'Anual') {
-            let nd = getAttempt(year, month);
-            if (nd && nd < new Date(year, month, now.getDate())) {
-                nd = getAttempt(year, month + 1);
-            }
-            if (nd) return { date: nd, label: nd.toLocaleDateString('pt-BR') };
-        }
-
-        return { date: new Date(9999, 11, 31), label: 'Varia' };
-    };
-
-    const allEvents = [];
-    locations.forEach(loc => {
-        if (filterCity && loc.city !== filterCity) return;
-
-        (loc.schedules || []).forEach(schedule => {
-            if (schedule.event_type !== 'Culto' && schedule.event_type !== 'GEM') {
-                if (filterType && schedule.event_type !== filterType) return;
-
-                const nextDateInfo = getNextDate(schedule);
-                allEvents.push({
-                    ...schedule,
-                    locationName: loc.name,
-                    city: loc.city,
-                    nextDateObj: nextDateInfo.date,
-                    nextDateLabel: nextDateInfo.label
-                });
-            }
-        });
-    });
-
-    allEvents.sort((a, b) => a.nextDateObj - b.nextDateObj);
-    const visibleEvents = allEvents.slice(0, 4); // Show only top 4 upcoming
-
-    // Get unique event types for the filter
-    const eventTypes = [...new Set(locations.flatMap(l => (l.schedules || []).map(s => s.event_type)))].filter(t => t !== 'Culto' && t !== 'GEM');
+    const eventTypes = [...new Set(normalizedEvents.map(e => e.event_type).filter(Boolean))];
+    const cityOptions = [...new Set(normalizedEvents.map(e => e.city).filter(Boolean))];
 
     return (
         <section className="upcoming-events-section" style={{ padding: '60px 0', background: '#ffffff' }}>
@@ -117,9 +54,9 @@ export default function UpcomingEvents() {
                             style={{ padding: '8px 16px', borderRadius: '4px', border: '1px solid #ddd' }}
                         >
                             <option value="">Todas as Cidades</option>
-                            <option value="Santa Isabel">Santa Isabel</option>
-                            <option value="Arujá">Arujá</option>
-                            <option value="Igaratá">Igaratá</option>
+                            {cityOptions.sort().map(city => (
+                                <option key={city} value={city}>{city}</option>
+                            ))}
                         </select>
 
                         <select
@@ -159,7 +96,7 @@ export default function UpcomingEvents() {
                                     <span style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <Calendar size={16} /> {e.nextDateLabel}
                                     </span>
-                                    <span>{e.day_of_week} às {e.time}</span>
+                                    <span>às {e.nextTimeLabel}</span>
                                 </div>
                             </div>
                         ))}

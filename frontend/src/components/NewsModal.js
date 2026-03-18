@@ -12,17 +12,17 @@ const TAG_COLORS = {
 
 const DEFAULT_TAG = 'Aviso';
 
-export default function NewsModal({ news, onSave, onClose }) {
-    const emptyForm = {
-        title: '',
-        content: '',
-        tag: DEFAULT_TAG,
-        tag_color: TAG_COLORS[DEFAULT_TAG],
-        date: new Date().toLocaleDateString('pt-BR'),
-        target_audience: 'Público',
-    };
+const buildEmptyForm = () => ({
+    title: '',
+    content: '',
+    tag: DEFAULT_TAG,
+    tag_color: TAG_COLORS[DEFAULT_TAG],
+    date: new Date().toLocaleDateString('pt-BR'),
+    target_audience: 'Público',
+});
 
-    const [form, setForm] = useState(emptyForm);
+export default function NewsModal({ news, onSave, onClose }) {
+    const [form, setForm] = useState(() => buildEmptyForm());
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -36,7 +36,7 @@ export default function NewsModal({ news, onSave, onClose }) {
                 target_audience: news.target_audience || 'Público',
             });
         } else {
-            setForm(emptyForm);
+            setForm(buildEmptyForm());
         }
     }, [news]);
 

@@ -57,6 +57,16 @@ export default function Header() {
                   Ministério
                 </Link>
 
+                <Link href="/agenda-ministerial" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                  <span className="material-symbols-outlined text-[18px]">event_note</span>
+                  Agenda Ministerial
+                </Link>
+
+                <Link href="/cozinha" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                  <span className="material-symbols-outlined text-[18px]">soup_kitchen</span>
+                  Logística de Cozinha
+                </Link>
+
                 {['admin', 'editor'].includes(user.role) && (
                   <Link href="/documentos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
                     <span className="material-symbols-outlined text-[18px]">description</span>
@@ -65,10 +75,16 @@ export default function Header() {
                 )}
 
                 {user.role === 'admin' && (
-                  <Link href="/acessos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
-                    <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
-                    Acessos
-                  </Link>
+                  <>
+                    <Link href="/acessos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                      <span className="material-symbols-outlined text-[18px]">manage_accounts</span>
+                      Acessos
+                    </Link>
+                    <Link href="/informativos" onClick={() => setDropdownOpen(false)} className="stitch-dropdown-item">
+                      <span className="material-symbols-outlined text-[18px]">campaign</span>
+                      Informativos
+                    </Link>
+                  </>
                 )}
 
                 <div className="stitch-dropdown-divider">

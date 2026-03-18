@@ -7,12 +7,14 @@ services:
     container_name: secretaria-frontend
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3005:3000"
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
+      - ./frontend/next.config.mjs:/app/next.config.mjs
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+      - NEXT_PUBLIC_API_URL=http://69.169.103.28:8005/api/v1
+      - NEXT_PUBLIC_BACKEND_URL=http://69.169.103.28:8005
       - WATCHPACK_POLLING=true
     networks:
       - secretaria-net
@@ -27,7 +29,7 @@ services:
     container_name: secretaria-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8005:8000"
     volumes:
       - ./backend/src:/app/src
       - ./backend/uploads:/app/uploads
@@ -35,7 +37,7 @@ services:
       - db_data:/app/data
     environment:
       - DATABASE_URL=sqlite:////app/data/gestaodecomunicados.db
-      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost"]
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost","http://69.169.103.28:3005"]
     networks:
       - secretaria-net
 

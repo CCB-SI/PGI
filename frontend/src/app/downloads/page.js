@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import ResourceCard from '@/components/ResourceCard';
 import ResourceModal from '@/components/ResourceModal';
 import CategoryManagementModal from '@/components/CategoryManagementModal';
@@ -21,7 +21,7 @@ export default function DownloadsPage() {
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('public');
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const [resData, catData] = await Promise.all([
                 fetchResources(),
@@ -34,12 +34,12 @@ export default function DownloadsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [addToast]);
 
     useEffect(() => {
         setMounted(true);
         loadData();
-    }, []);
+    }, [loadData]);
 
     const filteredResources = useMemo(() => {
         const target = activeTab === 'public' ? 'Público' : 'Ministerial';

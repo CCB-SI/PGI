@@ -2,6 +2,22 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
+
+class EventTypeBase(BaseModel):
+    name: str
+    scope: str = "Administrativa"
+
+
+class EventTypeCreate(EventTypeBase):
+    pass
+
+
+class EventType(EventTypeBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 # --- Category Schemas ---
 class CategoryBase(BaseModel):
     name: str
@@ -91,10 +107,17 @@ class EventBase(BaseModel):
     end_time: Optional[datetime] = None
     image_url: Optional[str] = None
     category: str = "Musical"
+    event_type: str = "Reunião Administrativa"
+    agenda_scope: str = "Administrativa"
     category_id: int
     location_id: Optional[int] = None
     target_audience: str = "Público"
     instructions: Optional[str] = None
+    space_name: Optional[str] = None
+    estimated_people: Optional[int] = None
+    duration_minutes: Optional[int] = None
+    is_online: bool = False
+    recurrence_rule: Optional[str] = None
 
 class EventCreate(EventBase):
     pass
