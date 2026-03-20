@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchEvents } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
+import { formatDateSP, formatTimeSP } from '@/utils/datetime';
 import { Calendar } from 'lucide-react';
 
 export default function UpcomingEvents() {
@@ -24,11 +25,8 @@ export default function UpcomingEvents() {
         locationName: event.location?.name || 'Local não informado',
         city: event.location?.city || 'Cidade não informada',
         nextDateObj: new Date(event.start_time),
-        nextDateLabel: new Date(event.start_time).toLocaleDateString('pt-BR'),
-        nextTimeLabel: new Date(event.start_time).toLocaleTimeString('pt-BR', {
-            hour: '2-digit',
-            minute: '2-digit',
-        }),
+        nextDateLabel: formatDateSP(event.start_time),
+        nextTimeLabel: formatTimeSP(event.start_time),
     }));
 
     const filteredEvents = normalizedEvents

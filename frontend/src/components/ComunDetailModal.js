@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getPhotoUrl } from '@/services/api';
 import { MapPin, Clock, Users, FileText } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { formatDateSP, formatTimeSP } from '@/utils/datetime';
 
 export default function ComunDetailModal({ location, locationEvents = [], onEdit, onDelete, onClose }) {
     const { user } = useAuth();
@@ -80,9 +81,9 @@ export default function ComunDetailModal({ location, locationEvents = [], onEdit
                                         <span className="schedule-group-label">{event.event_type || 'Evento'}</span>
                                         <div className="schedule-group-items">
                                             <span className="schedule-tag">
-                                                {startDate.toLocaleDateString('pt-BR')} às {startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                {formatDateSP(startDate)} às {formatTimeSP(startDate)}
                                                 {endDate && (
-                                                    <small> · até {endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+                                                    <small> · até {formatTimeSP(endDate)}</small>
                                                 )}
                                                 {event.title && <small> · {event.title}</small>}
                                             </span>

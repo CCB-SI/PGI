@@ -85,6 +85,7 @@ const DEFAULT_FORM = {
     space_name: '',
     estimated_people: '',
     duration_minutes: '',
+    serve_meals: false,
     is_online: false,
     recurrence_rule: '',
     instructions: '',
@@ -99,6 +100,12 @@ function toDateTimeLocal(value) {
     const offsetMs = date.getTimezoneOffset() * 60000;
     const local = new Date(date.getTime() - offsetMs);
     return local.toISOString().slice(0, 16);
+}
+
+function toLocalApiDateTime(value) {
+    if (!value) return null;
+    // Keep local wall-clock time from datetime-local input (no UTC conversion).
+    return value.length === 16 ? `${value}:00` : value;
 }
 
 export default function EventModal({
@@ -142,6 +149,7 @@ export default function EventModal({
                 space_name: eventData.space_name || '',
                 estimated_people: eventData.estimated_people ?? '',
                 duration_minutes: eventData.duration_minutes ?? '',
+                serve_meals: Boolean(eventData.serve_meals),
                 is_online: Boolean(eventData.is_online),
                 recurrence_rule: eventData.recurrence_rule || '',
                 instructions: eventData.instructions || '',
@@ -216,8 +224,8 @@ export default function EventModal({
             nextErrors.location_id = 'Selecione um local.';
         }
         if (isGeofenceCity) {
-            if (!form.estimated_people) {
-                nextErrors.estimated_people = 'Obrigatório para eventos em Santa Isabel, Arujá e Igaratá.';
+            if (form.serve_meals && !form.estimated_people) {
+                nextErrors.estimated_people = 'Obrigatório quando Servir Refeições estiver marcado.';
             }
             if (!form.duration_minutes) {
                 nextErrors.duration_minutes = 'Obrigatório para programação da cozinha nas cidades atendidas.';
@@ -240,8 +248,8 @@ export default function EventModal({
         const payload = {
             title: form.title.trim(),
             description: form.description.trim(),
-            start_time: new Date(form.start_time).toISOString(),
-            end_time: form.end_time ? new Date(form.end_time).toISOString() : null,
+            start_time: toLocalApiDateTime(form.start_time),
+            end_time: toLocalApiDateTime(form.end_time),
             image_url: form.image_url?.trim() || null,
             category: form.category,
             category_id: Number(form.category_id),
@@ -253,6 +261,7 @@ export default function EventModal({
             space_name: form.space_name?.trim() || null,
             estimated_people: form.estimated_people ? Number(form.estimated_people) : null,
             duration_minutes: form.duration_minutes ? Number(form.duration_minutes) : null,
+            serve_meals: Boolean(form.serve_meals),
             is_online: Boolean(form.is_online),
             recurrence_rule: form.recurrence_rule?.trim() || null,
         };
@@ -405,6 +414,11 @@ export default function EventModal({
                             <label>Duração (min)</label>
                             <input type="number" min="1" name="duration_minutes" value={form.duration_minutes} onChange={handleChange} />
                             {fieldErrors.duration_minutes && <small style={{ color: 'var(--warning-color)' }}>{fieldErrors.duration_minutes}</small>}
+                        </div>
+
+                        <div className="form-group full-width" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input id="serve_meals" type="checkbox" name="serve_meals" checked={form.serve_meals} onChange={handleChange} />
+                            <label htmlFor="serve_meals" style={{ margin: 0 }}>Servir refeições</label>
                         </div>
 
                         <div className="form-group full-width">

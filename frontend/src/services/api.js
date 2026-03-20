@@ -574,6 +574,88 @@ export async function generateDocumentPDF(templateId, memberId) {
     return await res.blob();
 }
 
+export async function updateDocumentTemplate(templateId, { name, version, schema_mapping, file } = {}) {
+    const formData = new FormData();
+    if (name !== undefined && name !== null) formData.append('name', name);
+    if (version !== undefined && version !== null) formData.append('version', version);
+    if (schema_mapping !== undefined && schema_mapping !== null) formData.append('schema_mapping', schema_mapping);
+    if (file) formData.append('file', file);
+
+    const res = await fetch(`${API_URL}/documents/templates/${templateId}`, {
+        method: 'PUT',
+        headers: { ...authHeaders() },
+        body: formData,
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao atualizar modelo de documento');
+    }
+    return await res.json();
+}
+
+export async function deleteDocumentTemplate(templateId) {
+    const res = await fetch(`${API_URL}/documents/templates/${templateId}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() },
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao excluir modelo de documento');
+    }
+    return true;
+}
+
+export async function fetchDocumentIssuances(skip = 0, limit = 200) {
+    const res = await fetch(`${API_URL}/documents/issuances?skip=${skip}&limit=${limit}`, {
+        cache: 'no-store',
+        headers: { ...authHeaders() },
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao buscar documentos emitidos');
+    }
+    return await res.json();
+}
+
+export async function deleteDocumentIssuance(issuanceId) {
+    const res = await fetch(`${API_URL}/documents/issuances/${issuanceId}`, {
+        method: 'DELETE',
+        headers: { ...authHeaders() },
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao excluir documento emitido');
+    }
+    return true;
+}
+
+export async function fetchAuditLogs({
+    skip = 0,
+    limit = 200,
+    action,
+    entity_type,
+    start_date,
+    end_date,
+} = {}) {
+    const params = new URLSearchParams();
+    params.append('skip', String(skip));
+    params.append('limit', String(limit));
+    if (action) params.append('action', action);
+    if (entity_type) params.append('entity_type', entity_type);
+    if (start_date) params.append('start_date', start_date);
+    if (end_date) params.append('end_date', end_date);
+
+    const res = await fetch(`${API_URL}/audit/logs?${params.toString()}`, {
+        cache: 'no-store',
+        headers: { ...authHeaders() },
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erro ao buscar logs de auditoria');
+    }
+    return await res.json();
+}
+
 // --- Constantes pré-definidas ---
 
 export const MINISTRY_ROLES_REGIONAL = [

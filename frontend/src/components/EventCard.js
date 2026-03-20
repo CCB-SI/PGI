@@ -1,4 +1,5 @@
 import { MapPin } from 'lucide-react';
+import { formatDateSP } from '@/utils/datetime';
 
 export default function EventCard({ title, date, location, category, description }) {
     return (
@@ -7,7 +8,7 @@ export default function EventCard({ title, date, location, category, description
                 <span className="event-category" style={{ backgroundColor: category?.color || '#ccc' }}>
                     {category?.name || 'Geral'}
                 </span>
-                <span className="event-date">{new Date(date).toLocaleDateString()}</span>
+                <span className="event-date">{formatDateSP(date)}</span>
             </div>
             <div className="event-body">
                 <h3>{title}</h3>

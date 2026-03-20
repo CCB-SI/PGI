@@ -28,6 +28,8 @@ services:
       dockerfile: Dockerfile
     container_name: secretaria-backend
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     ports:
       - "8005:8000"
     volumes:
@@ -37,7 +39,7 @@ services:
       - db_data:/app/data
     environment:
       - DATABASE_URL=sqlite:////app/data/gestaodecomunicados.db
-      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost","http://69.169.103.28:3005"]
+      - ALLOWED_ORIGINS=["http://localhost:3000","http://localhost","http://69.169.103.28:3005","http://pgri.admsiga.org.br:3005"]
     networks:
       - secretaria-net
 

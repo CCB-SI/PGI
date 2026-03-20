@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { formatDateSP } from '@/utils/datetime';
 
 // Cores padrão para as tags
 const TAG_COLORS = {
@@ -17,7 +18,7 @@ const buildEmptyForm = () => ({
     content: '',
     tag: DEFAULT_TAG,
     tag_color: TAG_COLORS[DEFAULT_TAG],
-    date: new Date().toLocaleDateString('pt-BR'),
+    date: formatDateSP(new Date()),
     target_audience: 'Público',
 });
 
@@ -32,7 +33,7 @@ export default function NewsModal({ news, onSave, onClose }) {
                 content: news.content || '',
                 tag: news.tag || DEFAULT_TAG,
                 tag_color: news.tag_color || TAG_COLORS[news.tag || DEFAULT_TAG] || '#2196f3',
-                date: news.date || new Date().toLocaleDateString('pt-BR'),
+                date: news.date || formatDateSP(new Date()),
                 target_audience: news.target_audience || 'Público',
             });
         } else {

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchEvents, fetchNews, downloadEventsIcs, downloadMonthlyNoticesPdf, downloadAnnualAgendaPdf } from '@/services/api';
 import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
+import { formatDateSP, formatTimeSP } from '@/utils/datetime';
 import { Printer, MessageCircle, MapPin, Navigation, Calendar, Download, FileText, ExternalLink } from 'lucide-react';
 
 export default function AgendaPage() {
@@ -61,10 +62,10 @@ export default function AgendaPage() {
                 maps_url: event.location?.map_url,
                 waze_url: event.location?.waze_url,
                 nextDateObj: dateObj,
-                nextDateLabel: Number.isNaN(dateObj.getTime()) ? 'Data inválida' : dateObj.toLocaleDateString('pt-BR'),
+                nextDateLabel: Number.isNaN(dateObj.getTime()) ? 'Data inválida' : formatDateSP(dateObj),
                 timeLabel: Number.isNaN(dateObj.getTime())
                     ? '--:--'
-                    : dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                    : formatTimeSP(dateObj),
             };
         })
         .filter((event) => (filterCity ? event.city === filterCity : true));
@@ -103,6 +104,23 @@ export default function AgendaPage() {
     const activeNews = news || [];
 
     const publicNews = activeNews.filter(n => n.target_audience === 'Público' || !n.target_audience);
+    const sortedPublicNews = [...publicNews].sort((a, b) => {
+        const parseDate = (value) => {
+            if (!value) return null;
+            const [day, month, year] = String(value).split('/').map(Number);
+            if (!day || !month || !year) return null;
+            const parsed = new Date(year, month - 1, day);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        };
+
+        const dateA = parseDate(a.date);
+        const dateB = parseDate(b.date);
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return 1;
+        if (!dateB) return -1;
+        return dateA - dateB;
+    });
+
     const handlePrint = () => {
         window.print();
     };
@@ -191,6 +209,17 @@ export default function AgendaPage() {
             text += '\n';
         });
 
+        if (sortedPublicNews.length > 0) {
+            text += '*INFORMATIVOS*\n';
+            sortedPublicNews.forEach((n) => {
+                text += `• ${n.date || '--/--/----'} - ${n.title}\n`;
+                if (n.content) {
+                    text += `  ${n.content}\n`;
+                }
+            });
+            text += '\n';
+        }
+
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     };
@@ -251,7 +280,7 @@ export default function AgendaPage() {
                         <h2 style={{ fontSize: '18px', margin: '0', textTransform: 'uppercase' }}>Congregação Cristã no Brasil</h2>
                         <h3 style={{ fontSize: '15px', margin: '4px 0', fontWeight: 'normal' }}>Administração de Santa Isabel/SP</h3>
                         <p style={{ margin: '0', fontWeight: 'bold' }}>Lista de Batismos e Diversos</p>
-                        <p style={{ margin: '4px 0 0 0' }}>{getMonthName(new Date().toLocaleDateString('pt-BR'))} de {new Date().getFullYear()}</p>
+                        <p style={{ margin: '4px 0 0 0' }}>{getMonthName(formatDateSP(new Date()))} de {new Date().getFullYear()}</p>
                     </div>
                 </div>
 
@@ -303,12 +332,50 @@ export default function AgendaPage() {
                 )}
             </div>
 
-            {Object.keys(grouped).length === 0 ? (
+            {Object.keys(grouped).length === 0 && sortedPublicNews.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
-                    Nenhum evento registrado.
+                    Nenhum evento ou informativo registrado.
                 </div>
             ) : (
                 <div className="agenda-grid">
+                    {sortedPublicNews.length > 0 && (
+                        <div className="agenda-city-section" style={{ marginBottom: '40px' }}>
+                            <div style={{ borderBottom: `2px solid ${getColorForTerm('Avisos')}`, paddingBottom: '12px', marginBottom: '20px' }}>
+                                <Badge text="Informativos" style={{ fontSize: '1rem', padding: '6px 16px' }} />
+                            </div>
+
+                            <div className="agenda-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                                {sortedPublicNews.map((n) => (
+                                    <div
+                                        key={n.id}
+                                        className="agenda-card"
+                                        style={{
+                                            background: 'var(--surface-color)',
+                                            border: '1px solid var(--border-color)',
+                                            borderLeft: `5px solid ${n.tag_color || getColorForTerm('Avisos')}`,
+                                            borderRadius: 'var(--border-radius)',
+                                            padding: '16px',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '10px'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'center' }}>
+                                            <Badge text={n.tag || 'Informativo'} fallbackColor={n.tag_color || getColorForTerm('Avisos')} />
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                                {n.date || '--/--/----'}
+                                            </span>
+                                        </div>
+
+                                        <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--primary-color)' }}>{n.title}</h4>
+                                        <p style={{ margin: 0, color: 'var(--text-secondary)', whiteSpace: 'pre-line' }}>{n.content}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {Object.keys(grouped).sort().map(type => (
                         <div key={type} className="agenda-city-section" style={{ marginBottom: '40px' }}>
                             <div style={{ borderBottom: `2px solid ${getColorForTerm(type)}`, paddingBottom: '12px', marginBottom: '20px' }}>

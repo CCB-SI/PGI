@@ -7,6 +7,8 @@ try:
 except ImportError:
     fitz = None
 
+from ..core.s3_storage import s3_storage, S3StorageError
+
 class PDFService:
     def __init__(self, templates_dir: str = "/app/templates/pdfs"):
         self.templates_dir = templates_dir
@@ -21,12 +23,20 @@ class PDFService:
         if not fitz:
             raise RuntimeError("Biblioteca PyMuPDF não está instalada. Execute 'uv pip install pymupdf'.")
 
-        file_path = os.path.join(self.templates_dir, template_filename)
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Template {template_filename} não encontrado no caminho {file_path}.")
+        template_bytes = None
+        if s3_storage.enabled:
+            try:
+                template_bytes = s3_storage.download_bytes(template_filename)
+            except S3StorageError:
+                template_bytes = None
 
-        # Abre o documento PDF com PyMuPDF
-        doc = fitz.open(file_path)
+        if template_bytes is None:
+            file_path = os.path.join(self.templates_dir, template_filename)
+            if not os.path.exists(file_path):
+                raise FileNotFoundError(f"Template {template_filename} não encontrado no storage nem no caminho {file_path}.")
+            doc = fitz.open(file_path)
+        else:
+            doc = fitz.open(stream=template_bytes, filetype="pdf")
 
         # Atualiza os valores dos widgets em todas as páginas
         for page in doc:

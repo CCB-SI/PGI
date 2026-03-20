@@ -4,6 +4,7 @@ import { fetchKitchenForecast } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
+import { addDaysIsoDate, formatDateTimeSP, todayIsoDateSP } from '@/utils/datetime';
 
 export default function CozinhaPage() {
     const { user, token, loading: authLoading } = useAuth();
@@ -13,12 +14,8 @@ export default function CozinhaPage() {
     const [kitchenForecast, setKitchenForecast] = useState(null);
     const [loading, setLoading] = useState(true);
     const [kitchenLoading, setKitchenLoading] = useState(false);
-    const [kitchenStartDate, setKitchenStartDate] = useState(() => new Date().toISOString().slice(0, 10));
-    const [kitchenEndDate, setKitchenEndDate] = useState(() => {
-        const d = new Date();
-        d.setDate(d.getDate() + 30);
-        return d.toISOString().slice(0, 10);
-    });
+    const [kitchenStartDate, setKitchenStartDate] = useState(() => todayIsoDateSP());
+    const [kitchenEndDate, setKitchenEndDate] = useState(() => addDaysIsoDate(todayIsoDateSP(), 30));
 
     const loadForecast = useCallback(async () => {
         setLoading(true);
@@ -39,6 +36,9 @@ export default function CozinhaPage() {
         if (authLoading) return;
         if (!user) {
             router.push('/login');
+            } else if (user.role !== 'admin') {
+                addToast('Acesso restrito ao administrador.', 'error');
+                router.push('/');
         } else if (!token) {
             addToast('Sessão inválida. Faça login novamente.', 'warning');
             router.push('/login');
@@ -67,7 +67,7 @@ export default function CozinhaPage() {
         }
     };
 
-    if (authLoading || (!user && !authLoading)) {
+        if (authLoading || (!user && !authLoading) || (user && user.role !== 'admin')) {
         return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
     }
 
@@ -86,7 +86,7 @@ export default function CozinhaPage() {
                 <div>
                     <h1 style={{ margin: 0, fontSize: '1.4rem' }}>Logística de Cozinha</h1>
                     <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        Previsão de refeições para eventos em Santa Isabel, Arujá e Igaratá
+                        Previsão de refeições com base nos eventos da agenda marcados para servir refeições
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -140,7 +140,7 @@ export default function CozinhaPage() {
 
                     {/* Items table */}
                     {kitchenForecast.items?.length === 0 ? (
-                        <p style={{ color: 'var(--text-secondary)' }}>Nenhum evento geofence no período.</p>
+                        <p style={{ color: 'var(--text-secondary)' }}>Nenhum evento com refeições no período.</p>
                     ) : (
                         <table className="data-table">
                             <thead>
@@ -158,7 +158,7 @@ export default function CozinhaPage() {
                                 {kitchenForecast.items.map((item, index) => (
                                     <tr key={`${item.event_id}-${item.start_time}-${index}`}>
                                         <td style={{ whiteSpace: 'nowrap' }}>
-                                            {new Date(item.start_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
+                                            {formatDateTimeSP(item.start_time)}
                                         </td>
                                         <td>{item.event_type || item.title}</td>
                                         <td>{item.location_name}</td>

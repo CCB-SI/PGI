@@ -7,6 +7,14 @@ class Settings(BaseSettings):
     
     # CORS
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+
+    # AWS S3
+    AWS_S3_ENABLED: bool = True
+    AWS_S3_BUCKET: str = ""
+    AWS_REGION: str = "us-east-1"
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    AWS_S3_PUBLIC_BASE_URL: str = ""
     
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True)
 

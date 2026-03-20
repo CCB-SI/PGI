@@ -20,6 +20,7 @@ def _base_event_payload(category_id, location_id, start_time=None):
         "space_name": "Salão Principal",
         "estimated_people": 100,
         "duration_minutes": 120,
+        "serve_meals": True,
         "is_online": False,
         "recurrence_rule": "FREQ=MONTHLY;BYDAY=WE;BYSETPOS=3",
     }
@@ -100,3 +101,18 @@ def test_reject_online_event_without_jardim_acacias(client, admin_auth_headers, 
     response = client.post("/api/v1/events", json=payload, headers=admin_auth_headers)
     assert response.status_code == 400
     assert "Jardim das Acácias" in response.json()["detail"]
+
+
+def test_allow_missing_estimated_people_when_not_serving_meals(client, admin_auth_headers, seed_reference_data):
+    payload = _base_event_payload(
+        category_id=seed_reference_data["category"].id,
+        location_id=seed_reference_data["jardim"].id,
+    )
+    payload["serve_meals"] = False
+    payload["estimated_people"] = None
+
+    response = client.post("/api/v1/events", json=payload, headers=admin_auth_headers)
+    assert response.status_code == 201, response.text
+    created = response.json()
+    assert created["estimated_people"] is None
+    assert created["serve_meals"] is False

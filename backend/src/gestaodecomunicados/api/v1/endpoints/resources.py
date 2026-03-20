@@ -103,7 +103,7 @@ async def create_resource(
         content = await file.read()
         with open(filepath, "wb") as f:
             f.write(content)
-        
+
         f_url = f"/uploads/resources/{filename}"
         f_type = ext.upper()
     else:
@@ -140,7 +140,7 @@ def delete_resource(
     if not db_res:
         raise HTTPException(status_code=404, detail="Resource not found")
     
-    # Optional: Delete file from disk
+    # Remove file from local disk when applicable.
     try:
         if db_res.file_url.startswith("/uploads/resources/"):
             filename = db_res.file_url.split("/")[-1]

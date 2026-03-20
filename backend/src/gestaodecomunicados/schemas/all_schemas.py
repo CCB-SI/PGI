@@ -116,6 +116,7 @@ class EventBase(BaseModel):
     space_name: Optional[str] = None
     estimated_people: Optional[int] = None
     duration_minutes: Optional[int] = None
+    serve_meals: bool = False
     is_online: bool = False
     recurrence_rule: Optional[str] = None
 

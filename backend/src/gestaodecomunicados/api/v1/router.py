@@ -19,11 +19,12 @@ from . import auth
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 
-from .endpoints import resources, contact, users, documents
+from .endpoints import resources, contact, users, documents, audit
 api_router.include_router(resources.router, tags=["downloads"])
 api_router.include_router(contact.router, tags=["contact"])
 api_router.include_router(users.router)
 api_router.include_router(documents.router)
+api_router.include_router(audit.router)
 
 # --- Events Endpoints ---
 from typing import Optional
@@ -158,10 +159,10 @@ def _validate_and_prepare_event_payload(
     end_time = infer_end_time(start_time, payload.get("end_time"), payload.get("duration_minutes"))
 
     if location and requires_geofencing_logistics(location.city):
-        if payload.get("estimated_people") is None:
+        if payload.get("serve_meals") and payload.get("estimated_people") is None:
             raise HTTPException(
                 status_code=400,
-                detail="Quantidade estimada de pessoas é obrigatória para eventos em Santa Isabel, Arujá e Igaratá.",
+                detail="Quantidade estimada de pessoas é obrigatória quando Servir Refeições estiver marcado.",
             )
         if payload.get("duration_minutes") is None:
             raise HTTPException(
@@ -521,7 +522,7 @@ def kitchen_forecast_report(
     end_date: Optional[datetime] = None,
     city: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.require_restricted_user),
+    current_user: models.User = Depends(auth.require_admin),
 ):
     window_start = start_date or datetime.utcnow()
     window_end = end_date or (window_start + timedelta(days=30))
@@ -541,7 +542,7 @@ def kitchen_forecast_report(
     total_duration_minutes = 0
 
     for event in events:
-        if not event.location or not requires_geofencing_logistics(event.location.city):
+        if not event.serve_meals:
             continue
 
         occurrences = expand_occurrences(
@@ -567,8 +568,8 @@ def kitchen_forecast_report(
                     "event_id": event.id,
                     "title": event.title,
                     "event_type": event.event_type,
-                    "city": event.location.city,
-                    "location_name": event.location.name,
+                    "city": event.location.city if event.location else None,
+                    "location_name": event.location.name if event.location else "Local não informado",
                     "space_name": event.space_name,
                     "start_time": occurrence.start,
                     "end_time": occurrence.end,
@@ -829,8 +830,9 @@ async def upload_location_photo(
     content = await file.read()
     with open(filepath, "wb") as f:
         f.write(content)
-    
+
     db_location.photo_url = f"/uploads/{filename}"
+
     db.commit()
     db.refresh(db_location)
     return db_location

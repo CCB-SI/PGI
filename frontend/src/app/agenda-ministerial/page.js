@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
 import EventModal from '@/components/EventModal';
+import { formatDateTimeSP } from '@/utils/datetime';
 import { Plus, ExternalLink } from 'lucide-react';
 
 export default function AgendaMinisterialPage() {
@@ -197,7 +198,7 @@ export default function AgendaMinisterialPage() {
                                         <p style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{eventItem.location?.city || 'Cidade não informada'}</p>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem' }}>
                                             <span style={{ fontWeight: '600' }}>{eventItem.event_type || 'Reunião'}</span>
-                                            <span>{new Date(eventItem.start_time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                            <span>{formatDateTimeSP(eventItem.start_time)}</span>
                                         </div>
                                         {(eventItem.instructions || eventItem.description) && (
                                             <div style={{ marginTop: '10px', background: '#f5f5f5', padding: '8px', borderRadius: '4px', fontSize: '0.85rem' }}>

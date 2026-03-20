@@ -1,6 +1,11 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { fetchLocations, fetchDocumentTemplates } from '@/services/api';
+import {
+    fetchLocations,
+    fetchDocumentTemplates,
+    updateDocumentTemplate,
+    deleteDocumentTemplate,
+} from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
@@ -27,12 +32,16 @@ export default function DocumentManagement() {
     const [newTemplateName, setNewTemplateName] = useState('');
     const [newTemplateFile, setNewTemplateFile] = useState(null);
     const [templateLoading, setTemplateLoading] = useState(false);
+    const [editingTemplateId, setEditingTemplateId] = useState(null);
+    const [editTemplateName, setEditTemplateName] = useState('');
+    const [editTemplateVersion, setEditTemplateVersion] = useState('');
+    const [editTemplateFile, setEditTemplateFile] = useState(null);
 
     const loadData = useCallback(async () => {
         try {
             const [locationsData, templatesData] = await Promise.all([
                 fetchLocations(),
-                fetchDocumentTemplates().catch(() => [])
+                fetchDocumentTemplates().catch(() => []),
             ]);
 
             setLocations(locationsData);
@@ -46,7 +55,7 @@ export default function DocumentManagement() {
         } finally {
             setLoading(false);
         }
-    }, [addToast]);
+    }, [addToast, user?.role]);
 
     useEffect(() => {
         if (authLoading) return;
@@ -151,6 +160,48 @@ const handleUploadTemplate = async (e) => {
         addToast(err.message || 'Erro no upload', 'error');
     } finally {
         setTemplateLoading(false);
+    }
+};
+
+const startEditingTemplate = (template) => {
+    setEditingTemplateId(template.id);
+    setEditTemplateName(template.name || '');
+    setEditTemplateVersion(template.version || '1.0');
+    setEditTemplateFile(null);
+};
+
+const cancelEditingTemplate = () => {
+    setEditingTemplateId(null);
+    setEditTemplateName('');
+    setEditTemplateVersion('');
+    setEditTemplateFile(null);
+};
+
+const handleSaveTemplateEdit = async (templateId) => {
+    try {
+        await updateDocumentTemplate(templateId, {
+            name: editTemplateName,
+            version: editTemplateVersion,
+            file: editTemplateFile,
+        });
+        addToast('Modelo atualizado com sucesso');
+        cancelEditingTemplate();
+        await loadData();
+    } catch (err) {
+        addToast(err.message || 'Erro ao atualizar modelo', 'error');
+    }
+};
+
+const handleDeleteTemplate = async (template) => {
+    if (!window.confirm(`Excluir modelo "${template.name}"? Esta ação remove também documentos emitidos associados.`)) {
+        return;
+    }
+    try {
+        await deleteDocumentTemplate(template.id);
+        addToast('Modelo removido com sucesso');
+        await loadData();
+    } catch (err) {
+        addToast(err.message || 'Erro ao excluir modelo', 'error');
     }
 };
 
@@ -305,6 +356,53 @@ return (
                                 {templateLoading ? 'Enviando...' : <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Upload size={16} /> Fazer Upload</span>}
                             </button>
                         </form>
+
+                        <div style={{ marginTop: '24px' }}>
+                            <h3 style={{ marginBottom: '10px' }}>Modelos Cadastrados</h3>
+                            {templates.length === 0 ? (
+                                <p style={{ color: 'var(--text-secondary)' }}>Nenhum modelo cadastrado.</p>
+                            ) : (
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Versão</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {templates.map((t) => (
+                                            <tr key={t.id}>
+                                                <td>
+                                                    {editingTemplateId === t.id ? (
+                                                        <input value={editTemplateName} onChange={(e) => setEditTemplateName(e.target.value)} />
+                                                    ) : t.name}
+                                                </td>
+                                                <td>
+                                                    {editingTemplateId === t.id ? (
+                                                        <input value={editTemplateVersion} onChange={(e) => setEditTemplateVersion(e.target.value)} style={{ width: '100px' }} />
+                                                    ) : t.version}
+                                                </td>
+                                                <td>
+                                                    {editingTemplateId === t.id ? (
+                                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                            <input type="file" accept="application/pdf" onChange={(e) => setEditTemplateFile(e.target.files?.[0] || null)} />
+                                                            <button className="btn-small btn-small-edit" onClick={() => handleSaveTemplateEdit(t.id)}>Salvar</button>
+                                                            <button className="btn-small" onClick={cancelEditingTemplate}>Cancelar</button>
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button className="btn-small btn-small-edit" onClick={() => startEditingTemplate(t)}>Editar</button>
+                                                            <button className="btn-small btn-small-danger" onClick={() => handleDeleteTemplate(t)}>Excluir</button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
                     </section>
                 )}
 

@@ -1,13 +1,14 @@
 import Image from 'next/image';
 import { getPhotoUrl } from '@/services/api';
 import { MapPin, Clock } from 'lucide-react';
+import { formatDateSP, formatTimeSP } from '@/utils/datetime';
 
 export default function LocationCard({ name, city, address, photo_url, upcoming_events = [], onClick }) {
     const photoUrl = getPhotoUrl(photo_url);
 
     const nextEvent = (upcoming_events || [])[0];
     const previewText = nextEvent
-        ? `${new Date(nextEvent.start_time).toLocaleDateString('pt-BR')} às ${new Date(nextEvent.start_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+        ? `${formatDateSP(nextEvent.start_time)} às ${formatTimeSP(nextEvent.start_time)}`
         : null;
     const totalEvents = (upcoming_events || []).length;
 

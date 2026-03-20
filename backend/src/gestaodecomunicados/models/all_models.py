@@ -123,6 +123,7 @@ class Event(Base):
     space_name = Column(String, nullable=True)
     estimated_people = Column(Integer, nullable=True)
     duration_minutes = Column(Integer, nullable=True)
+    serve_meals = Column(Boolean, default=False)
     is_online = Column(Boolean, default=False)
     recurrence_rule = Column(String, nullable=True)
 
@@ -156,9 +157,26 @@ class DocumentIssuance(Base):
     issuer_id = Column(Integer, ForeignKey("users.id"), nullable=False)       # Quem emitiu
     member_id = Column(Integer, ForeignKey("ministry_members.id"), nullable=False) # Para quem
     issued_at = Column(DateTime, default=datetime.utcnow)
+    file_key = Column(String, nullable=True)
+    file_url = Column(String, nullable=True)
 
     template = relationship("DocumentTemplate", back_populates="issuances")
     issuer = relationship("User")
     member = relationship("MinistryMember")
+
+
+class AuditLog(Base):
+    """Registro de auditoria para ações administrativas"""
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(String, nullable=False, index=True)
+    entity_type = Column(String, nullable=False, index=True)
+    entity_id = Column(String, nullable=True)
+    actor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    details = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    actor = relationship("User")
 
 from .resource_model import Resource

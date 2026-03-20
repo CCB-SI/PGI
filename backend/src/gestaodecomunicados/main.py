@@ -44,6 +44,15 @@ def migrate_db():
                 print("Migrating database: adding target_audience to news...")
                 cursor.execute("ALTER TABLE news ADD COLUMN target_audience TEXT DEFAULT 'Público'")
 
+            cursor.execute("PRAGMA table_info(document_issuances)")
+            issuance_columns = [row[1] for row in cursor.fetchall()]
+            if 'file_key' not in issuance_columns:
+                print("Migrating database: adding file_key to document_issuances...")
+                cursor.execute("ALTER TABLE document_issuances ADD COLUMN file_key TEXT")
+            if 'file_url' not in issuance_columns:
+                print("Migrating database: adding file_url to document_issuances...")
+                cursor.execute("ALTER TABLE document_issuances ADD COLUMN file_url TEXT")
+
             # Migration for locations
             cursor.execute("PRAGMA table_info(locations)")
             loc_columns = [row[1] for row in cursor.fetchall()]
@@ -78,6 +87,9 @@ def migrate_db():
             if 'duration_minutes' not in evt_columns:
                 print("Migrating database: adding duration_minutes to events...")
                 cursor.execute("ALTER TABLE events ADD COLUMN duration_minutes INTEGER")
+            if 'serve_meals' not in evt_columns:
+                print("Migrating database: adding serve_meals to events...")
+                cursor.execute("ALTER TABLE events ADD COLUMN serve_meals BOOLEAN DEFAULT 0")
             if 'is_online' not in evt_columns:
                 print("Migrating database: adding is_online to events...")
                 cursor.execute("ALTER TABLE events ADD COLUMN is_online BOOLEAN DEFAULT 0")

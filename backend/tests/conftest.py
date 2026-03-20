@@ -62,6 +62,27 @@ def admin_auth_headers(client):
 
 
 @pytest.fixture()
+def ministerial_auth_headers(client, db_session):
+    from gestaodecomunicados.core.security import get_password_hash
+
+    ministerial_user = models.User(
+        email="ministerial@test.com",
+        password_hash=get_password_hash("ministerial123"),
+        role="ministerial",
+    )
+    db_session.add(ministerial_user)
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/auth/login",
+        data={"username": "ministerial@test.com", "password": "ministerial123"},
+    )
+    assert response.status_code == 200, response.text
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture()
 def seed_reference_data(db_session):
     category = models.Category(name="Administrativo", description="Eventos administrativos", color="#333333")
 
