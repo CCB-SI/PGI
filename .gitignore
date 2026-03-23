@@ -15,7 +15,7 @@ backend/__pycache__/
 backend/*.pyc
 backend/.pytest_cache/
 backend/gestaodecomunicados.db
-
+credenciais.md
 # OS / Editor
 .DS_Store
 .vscode/

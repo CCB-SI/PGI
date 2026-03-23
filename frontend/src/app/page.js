@@ -76,6 +76,11 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Próximos Eventos */}
+        <div className="px-4 py-4">
+          <UpcomingEvents />
+        </div>
+
         {/* Acesso Rápido */}
         <section className="px-4 py-6">
           <h2 className="mb-4 text-xl font-bold tracking-tight">Acesso Rápido</h2>
@@ -96,11 +101,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        {/* Próximos Eventos */}
-        <div className="px-4 py-4">
-          <UpcomingEvents />
-        </div>
 
         {/* Mural de Informativos */}
         <section className="px-4 py-6">
