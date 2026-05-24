@@ -5,6 +5,10 @@ import Badge from '@/components/Badge';
 import { getColorForTerm } from '@/utils/colors';
 import { formatDateSP, formatTimeSP } from '@/utils/datetime';
 import { Printer, MessageCircle, MapPin, Navigation, Calendar, Download, FileText, ExternalLink } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
+import { X } from "lucide-react"
+import { Button } from '@/components/ui/button';
 
 export default function AgendaPage() {
     const [events, setEvents] = useState([]);
@@ -230,7 +234,8 @@ export default function AgendaPage() {
         <div className="print-container">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }} className="no-print">
                 <h1 className="section-title" style={{ margin: 0 }}>Agenda Regional</h1>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                {/* DESKTOP MENU */}
+                <div className="hidden md:flex gap-2">
                     <button className="btn-secondary" onClick={handleExportIcs} disabled={icsLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Download size={18} /> {icsLoading ? 'Gerando...' : 'iCal'}
                     </button>
@@ -247,6 +252,35 @@ export default function AgendaPage() {
                         <MessageCircle size={18} /> WhatsApp
                     </button>
                 </div>
+                {/* MOBILE MENU */}
+               <div className='block md:hidden'>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant='outline' className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Menu size={18} /> Ações
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side='right' style={{ width: '320px' }} className="bg-white p-4 pt-10">
+                      <div className='flex flex-col gap-2 py-4 '>
+                    <button className="btn-secondary" onClick={handleExportIcs} disabled={icsLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Download size={18} /> {icsLoading ? 'Gerando...' : 'iCal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportMonthlyPdf} disabled={monthlyPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={18} /> {monthlyPdfLoading ? 'Gerando...' : 'PDF Mensal'}
+                    </button>
+                    <button className="btn-secondary" onClick={handleExportAnnualPdf} disabled={annualPdfLoading} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <FileText size={18} /> {annualPdfLoading ? 'Gerando...' : 'PDF Anual'}
+                    </button>
+                    <button className="btn-secondary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Printer size={18} /> Exportar PDF
+                    </button>
+                    <button className="btn-primary" onClick={handleShareWhatsApp} style={{ background: '#25D366', borderColor: '#25D366', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MessageCircle size={18} /> WhatsApp
+                    </button>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+               </div>
             </div>
 
             <div style={{ marginBottom: '24px', display: 'flex', gap: '15px', alignItems: 'center' }} className="no-print">
