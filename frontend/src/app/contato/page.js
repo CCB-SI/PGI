@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 
+const API_URL = '/api/v1';
+
 export default function ContatoPage() {
     const [formData, setFormData] = useState({
         name: '',
@@ -19,8 +21,6 @@ export default function ContatoPage() {
         e.preventDefault();
         setLoading(true);
         setStatus({ type: '', msg: '' });
-
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
         try {
             const res = await fetch(`${API_URL}/contact`, {

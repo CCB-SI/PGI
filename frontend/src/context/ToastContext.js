@@ -1,21 +1,26 @@
 'use client';
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useRef, useState, createContext, useContext, useCallback, useMemo } from 'react';
 
 const ToastContext = createContext();
 
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
+    const lastIdRef = useRef(0);
 
-    const addToast = (message, type = 'success') => {
-        const id = Date.now();
+    const addToast = useCallback((message, type = 'success') => {
+        const now = Date.now();
+        const id = now <= lastIdRef.current ? lastIdRef.current + 1 : now;
+        lastIdRef.current = id;
         setToasts((prev) => [...prev, { id, message, type }]);
         setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== id));
         }, 4000);
-    };
+    }, []);
+
+    const contextValue = useMemo(() => ({ addToast }), [addToast]);
 
     return (
-        <ToastContext.Provider value={{ addToast }}>
+        <ToastContext.Provider value={contextValue}>
             {children}
             <div className="toast-container">
                 {toasts.map((t) => (

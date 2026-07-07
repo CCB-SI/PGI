@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import Badge from '@/components/Badge';
 import { Files, FileEdit, File, FolderOpen, Upload } from 'lucide-react';
 
+const API_URL = '/api/v1';
+
 export default function DocumentManagement() {
     const { user, loading: authLoading } = useAuth();
     const { addToast } = useToast();
@@ -81,7 +83,6 @@ export default function DocumentManagement() {
         }
         setDocLoading(true);
         try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
         const res = await fetch(`${API_URL}/documents/generate_custom/${selectedTemplate}`, {
             method: 'POST',
             headers: {
@@ -133,7 +134,6 @@ const handleUploadTemplate = async (e) => {
         formData.append('file', newTemplateFile);
         formData.append('version', '1.0');
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
         const res = await fetch(`${API_URL}/documents/templates`, {
             method: 'POST',
             headers: {
@@ -289,7 +289,6 @@ return (
                                 className="btn-secondary"
                                 onClick={() => {
                                     if (!selectedTemplate) return;
-                                    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
                                     window.open(`${API_URL}/documents/templates/${selectedTemplate}/view`, '_blank');
                                 }}
                                 disabled={!selectedTemplate}

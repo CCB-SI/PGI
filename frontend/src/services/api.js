@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = '/api/v1';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || API_URL.replace('/api/v1', '');
 
 function authHeaders() {
@@ -47,7 +47,6 @@ export async function fetchEvents(filters = {}) {
         const queryString = params.toString() ? `?${params.toString()}` : '';
         const res = await apiFetch(`${API_URL}/events${queryString}`, {
             cache: 'no-store',
-            headers: { ...authHeaders() }
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
@@ -235,7 +234,6 @@ export async function fetchLocations(city = '') {
         const params = city ? `?city=${encodeURIComponent(city)}` : '';
         const res = await apiFetch(`${API_URL}/locations${params}`, {
             cache: 'no-store',
-            headers: { ...authHeaders() }
         });
         if (!res.ok) throw new Error('Failed to fetch locations');
         return res.json();
@@ -327,7 +325,6 @@ export async function fetchNews(skip = 0, limit = 100) {
     try {
         const res = await apiFetch(`${API_URL}/news?skip=${skip}&limit=${limit}`, {
             cache: 'no-store',
-            headers: { ...authHeaders() }
         });
         if (!res.ok) throw new Error('Failed to fetch news');
         return res.json();
@@ -494,20 +491,27 @@ export async function unlinkMemberFromLocation(locationId, memberId) {
 // --- User Management (Admin Only) ---
 export async function fetchUsers() {
     try {
-        const res = await apiFetch(`${API_URL}/users/`, {
+        const res = await apiFetch(`${API_URL}/users`, {
             cache: 'no-store',
             headers: { ...authHeaders() }
         });
-        if (!res.ok) throw new Error('Falha ao buscar usuários');
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || `Falha ao buscar usuários (HTTP ${res.status})`);
+        }
         return await res.json();
     } catch (error) {
-        console.error('Erro na requisição fetchUsers:', error);
+        const message = error?.message || '';
+        const isAuthError = message.includes('Not authenticated') || message.includes('Could not validate credentials');
+        if (!isAuthError) {
+            console.error('Erro na requisição fetchUsers:', error);
+        }
         throw error;
     }
 }
 
 export async function createUser(data) {
-    const res = await fetch(`${API_URL}/users/`, {
+    const res = await apiFetch(`${API_URL}/users`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -523,7 +527,7 @@ export async function createUser(data) {
 }
 
 export async function deleteUser(id) {
-    const res = await fetch(`${API_URL}/users/${id}`, {
+    const res = await apiFetch(`${API_URL}/users/${id}`, {
         method: 'DELETE',
         headers: { ...authHeaders() }
     });

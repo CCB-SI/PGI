@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchUsers, createUser, deleteUser } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -8,7 +8,7 @@ import Badge from '@/components/Badge';
 import { Lock } from 'lucide-react';
 
 export default function AcessosDashboard() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, token, loading: authLoading } = useAuth();
     const { addToast } = useToast();
     const router = useRouter();
 
@@ -20,33 +20,58 @@ export default function AcessosDashboard() {
     const [newUserPassword, setNewUserPassword] = useState('');
     const [newUserRole, setNewUserRole] = useState('editor');
     const [actionLoadingUser, setActionLoadingUser] = useState(false);
+    const redirectedRef = useRef(false);
+
+    const redirectOnce = useCallback((path) => {
+        if (redirectedRef.current) return;
+        redirectedRef.current = true;
+        router.replace(path);
+    }, [router]);
 
     const loadData = useCallback(async () => {
+        if (!token) {
+            addToast('Sessão expirada. Faça login novamente.', 'error');
+            redirectOnce('/login');
+            setLoading(false);
+            return;
+        }
+
         try {
             const usersData = await fetchUsers();
             setSystemUsers(usersData);
         } catch (err) {
+            const message = err?.message || '';
+            if (message.includes('Not authenticated') || message.includes('Could not validate credentials')) {
+                addToast('Sessão expirada. Faça login novamente.', 'error');
+                redirectOnce('/login');
+                return;
+            }
             console.error(err);
-            addToast('Erro ao carregar usuários do sistema', 'error');
+            if (message.toLowerCase().includes('admin')) {
+                addToast('Acesso negado. Esta área requer perfil administrador.', 'error');
+                redirectOnce('/');
+                return;
+            }
+            addToast(message || 'Erro ao carregar usuários do sistema', 'error');
         } finally {
             setLoading(false);
         }
-    }, [addToast]);
+    }, [addToast, redirectOnce, token]);
 
     useEffect(() => {
         if (authLoading) return;
         if (!user) {
-            router.push('/login');
+            redirectOnce('/login');
         } else {
             // Apenas Admin tem acesso a Gestão de Acessos
             if (user.role !== 'admin') {
-                router.push('/');
                 addToast('Acesso negado. Apenas administradores podem gerenciar acessos.', 'error');
+                redirectOnce('/');
             } else {
                 loadData();
             }
         }
-    }, [user, authLoading, router, addToast, loadData]);
+    }, [user, authLoading, addToast, loadData, redirectOnce]);
 
     if (authLoading || (!user && !authLoading)) return <p style={{ padding: '40px', textAlign: 'center' }}>Carregando...</p>;
 

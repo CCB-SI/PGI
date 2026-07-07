@@ -13,8 +13,10 @@ services:
       - ./frontend/public:/app/public
       - ./frontend/next.config.mjs:/app/next.config.mjs
     environment:
-      - NEXT_PUBLIC_API_URL=http://69.169.103.28:8005/api/v1
-      - NEXT_PUBLIC_BACKEND_URL=http://69.169.103.28:8005
+      # Proxy interno: Next (container) → API no serviço backend (rede Docker)
+      - API_REWRITE_TARGET=http://backend:8000
+      # URL que o navegador usa para /uploads (porta publicada do host)
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8005
       - WATCHPACK_POLLING=true
     networks:
       - secretaria-net

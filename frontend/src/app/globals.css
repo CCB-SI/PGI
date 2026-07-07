@@ -12,7 +12,7 @@
   --background-color: #f4f6f9;
   --surface-color: #ffffff;
   --text-primary: #1a1a2e;
-  --text-secondary: #5a6275;
+  --text-secondary: #3f4759;
   --border-color: #dfe3ea;
   --success-color: #34a853;
   --warning-color: #f59e0b;
@@ -449,7 +449,7 @@ button {
 
 .footer-section p,
 .footer-section a {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.88rem;
   margin-bottom: 8px;
   display: block;
@@ -464,7 +464,7 @@ button {
   margin-top: 20px;
   text-align: center;
   font-size: 0.85rem;
-  opacity: 0.6;
+  opacity: 0.85;
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -1476,10 +1476,18 @@ textarea {
 .comum-form label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.comum-form input::placeholder,
+.comum-form textarea::placeholder,
+.form-input::placeholder,
+.search-bar::placeholder {
+  color: #4f576a;
+  opacity: 1;
 }
 
 .comum-form input,

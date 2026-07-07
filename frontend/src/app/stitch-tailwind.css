@@ -38,11 +38,11 @@
 }
 
 .text-slate-400 {
-    color: #64748b;
+    color: #475569;
 }
 
 .text-slate-300 {
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .text-white {
@@ -691,7 +691,7 @@
 
 .stitch-dropdown-role {
     font-size: 0.75rem;
-    color: var(--stitch-text-muted);
+    color: var(--stitch-bg-light);
     text-transform: capitalize;
     margin: 0;
 }
@@ -702,7 +702,7 @@
     gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
-    color: var(--stitch-text-muted);
+    color: var(--stitch-bg-light);
     cursor: pointer;
     transition: background-color 200ms ease-out, color 200ms ease-out;
     border: none;

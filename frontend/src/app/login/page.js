@@ -11,6 +11,7 @@ export default function LoginPage() {
 
     const { login } = useAuth();
     const router = useRouter();
+    const API_URL = '/api/v1';
 
     const handleChange = (e) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -25,7 +26,7 @@ export default function LoginPage() {
             formData.append('username', credentials.username);
             formData.append('password', credentials.password);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
