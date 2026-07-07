@@ -4,6 +4,11 @@ npm-debug.log
 yarn-error.log
 .env
 .env.local
+.env.*
+*.pem
+*.key
+*.p12
+*.crt
 
 # Next.js
 frontend/.next/
