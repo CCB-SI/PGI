@@ -8,7 +8,7 @@ Sistema web da Regional de Santa Isabel, Arujá e Igaratá (CCB) para comuns, ho
 
 ## Estado atual
 
-Atualizado em 2026-09-27. A tabela está no `AGENTS.md` ("Estado atual"). Em resumo: as funcionalidades estão na `main`; há achados críticos de segurança em aberto (`docs/revisoes/2026-09-27-achados-da-adequacao.md`, S-01 a S-04); a produção não respondeu nesta data e não se sabe se ela é igual à `main`.
+Atualizado em 2026-09-27. A tabela está no `AGENTS.md` ("Estado atual"). Em resumo: as funcionalidades estão na `main`; há achados críticos de segurança em aberto (`docs/revisoes/2026-09-27-achados-da-adequacao.md`, S-01 a S-04), com correção proposta no PR #2; a produção não respondeu nesta data e não se sabe se ela é igual à `main`.
 
 ## Ambientes
 
@@ -41,4 +41,4 @@ Sobre o que **já foi construído**, este documento vence os demais.
 
 ## Ponto de retomada
 
-Antes de qualquer feature: os achados S-01 a S-03 (seed público de admin, admin padrão e segredo do JWT no código), numa branch de segurança, com a troca do segredo na VPS. A decisão é do Lucas e de quem opera o servidor. Em seguida, confirmar o que a VPS tem de diferente da `main` e fazer o compose subir a partir do git.
+Antes de qualquer feature: publicar a correção de S-01 a S-04 (PR #2, branch `fix/seguranca-admin-jwt`). O deploy dela leva a troca do segredo do JWT e das senhas das contas padrão na VPS, pelo roteiro do PR; a decisão é do Lucas e de quem opera o servidor. Esse roteiro já começa por confirmar o que a VPS tem de diferente da `main`. Em seguida, fazer o compose subir a partir do git.
