@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -12,6 +13,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = BACKEND_DIR / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
+
+# A configuração é lida no import do app: o segredo de teste entra antes dele.
+os.environ.setdefault("JWT_SECRET_KEY", "segredo-de-teste-" * 3)
 
 from gestaodecomunicados.api.v1.router import api_router
 from gestaodecomunicados.core.database import Base, get_db
@@ -51,10 +55,51 @@ def client(db_session):
 
 
 @pytest.fixture()
-def admin_auth_headers(client):
+def boot_backend(tmp_path):
+    """Importa o app num processo novo, como o uvicorn faz ao subir o backend.
+
+    Variável com valor None sai do ambiente do processo.
+    """
+
+    def run(code="import gestaodecomunicados.main", **env_overrides):
+        env = {
+            **os.environ,
+            "PYTHONPATH": str(SRC_DIR),
+            "DATABASE_URL": f"sqlite:///{tmp_path / 'boot.db'}",
+        }
+        for name, value in env_overrides.items():
+            if value is None:
+                env.pop(name, None)
+            else:
+                env[name] = value
+        # cwd no tmp_path: nenhum .env de desenvolvimento entra no teste
+        return subprocess.run(
+            [sys.executable, "-c", code],
+            cwd=tmp_path,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+
+    return run
+
+
+@pytest.fixture()
+def admin_auth_headers(client, db_session):
+    from gestaodecomunicados.core.security import get_password_hash
+
+    admin_user = models.User(
+        email="admin@test.com",
+        password_hash=get_password_hash("admin123"),
+        role="admin",
+    )
+    db_session.add(admin_user)
+    db_session.commit()
+
     response = client.post(
         "/api/v1/auth/login",
-        data={"username": "admin@admin.com", "password": "admin"},
+        data={"username": "admin@test.com", "password": "admin123"},
     )
     assert response.status_code == 200, response.text
     token = response.json()["access_token"]
