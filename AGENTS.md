@@ -102,7 +102,7 @@ Os achados (segurança, bugs, higiene e dependências) estão em `docs/revisoes/
 | Service | `services/`: `event_rules.py`, `recurrence_service.py`, `pdf_service.py`, `audit_service.py` |
 | Policy, middleware `auth` | dependências de `api/v1/auth.py` declaradas em cada rota: `get_current_user_optional` (leitura pública), `require_editor_or_admin`, `require_admin`. Não há grupo protegido por padrão: **rota sem dependência é pública** |
 | migration | não existe; `create_all` + `migrate_db()` no `main.py` |
-| `migrate:fresh`, `db:wipe` | `backend/drop_db.py`, apagar o `.db` ou o volume `db_data`: **só no seu ambiente**. A trava de agente não conhece esses comandos; fora da sua máquina, pare e peça ao humano |
+| `migrate:fresh`, `db:wipe` | apagar o `.db` ou o volume `db_data`: **só no seu ambiente**. A trava de agente não conhece esses comandos; fora da sua máquina, pare e peça ao humano. O `backend/drop_db.py` tem um caminho fixo de Windows e não apaga nada em outra máquina |
 | `php artisan test` | pytest em `backend/tests/`, que precisa de `/app` gravável (ver "Como rodar") |
 | Pint, ESLint | `uv run ruff check .` (ainda fora do CI, ver "Um jeito só"), `pnpm lint` |
 | `composer audit`, `npm audit` | `uvx pip-audit` sobre `uv export --frozen`, `pnpm audit --prod` |
@@ -199,7 +199,7 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 ## Um jeito só
 
 - **Autorização:** dependência de `api/v1/auth.py` na assinatura da rota. Checagem manual de papel dentro da função não conta.
-- **Chamada à API pelo front:** sempre pelas funções de `frontend/src/services/api.js`. Nada de `fetch` direto em página ou componente.
+- **Chamada à API pelo front:** pelas funções de `frontend/src/services/api.js`, que passam pelo `apiFetch` (limpa a sessão no 401). Legado a trazer para lá: `fetch` direto em `app/login/page.js:29`, `app/contato/page.js:26` e `app/documentos/page.js:86` e `:137`, cada um com o seu `API_URL` e o token lido na mão. Código novo não repete isso.
 - **Regra de evento:** em `services/event_rules.py`, chamada pela rota. A tela só mostra a mensagem do backend.
 - **Data e hora:** hoje é `DateTime` sem fuso com `datetime.utcnow`, e `News.date` e `Schedule.time` são texto. O padrão pede UTC com fuso e conversão num ponto só (`.ai/core/banco.md` §3); mudar é remodelagem, com decisão humana. Não crie um terceiro jeito.
 - **Exclusão:** hoje é física (`db.delete`) em tudo. O padrão pede desativar com quem e quando (`.ai/core/banco.md` §4); mudar é decisão humana.
