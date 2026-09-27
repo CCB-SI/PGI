@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import pytest
+
 from gestaodecomunicados.core.security import get_password_hash
 from gestaodecomunicados.models import all_models as models
 
@@ -94,3 +96,87 @@ def test_annual_report_restricted_scope_requires_auth(client, admin_auth_headers
     )
     assert report_auth.status_code == 200
     assert report_auth.content.startswith(b"%PDF")
+
+
+@pytest.fixture()
+def audience_events(db_session, seed_reference_data):
+    def event(title, event_type, agenda_scope, target_audience):
+        return models.Event(
+            title=title,
+            description="Pauta",
+            start_time=datetime(2026, 11, 10, 19, 0),
+            category="Administrativo",
+            event_type=event_type,
+            agenda_scope=agenda_scope,
+            category_id=seed_reference_data["category"].id,
+            location_id=seed_reference_data["jardim"].id,
+            target_audience=target_audience,
+        )
+
+    events = {
+        "public": event("Batismo Regional", "Batismo", "Espiritual/Geral", "Público"),
+        "restricted": event("RMA Restrita", "RMA", "Administrativa", "Ministerial"),
+        "restricted_notice": event("Santa Ceia Restrita", "Santa Ceia", "Espiritual/Geral", "Ministerial"),
+    }
+    db_session.add_all(events.values())
+    db_session.commit()
+    return events
+
+
+def _pdf_text(content):
+    import fitz
+
+    with fitz.open(stream=content, filetype="pdf") as doc:
+        return "".join(page.get_text() for page in doc)
+
+
+def test_event_detail_without_login_hides_restricted_event(client, audience_events):
+    restricted = client.get(f"/api/v1/events/{audience_events['restricted'].id}")
+    public = client.get(f"/api/v1/events/{audience_events['public'].id}")
+
+    assert restricted.status_code == 404
+    assert public.status_code == 200
+
+
+def test_event_detail_with_login_shows_restricted_event(client, audience_events, ministerial_auth_headers):
+    response = client.get(
+        f"/api/v1/events/{audience_events['restricted'].id}",
+        headers=ministerial_auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "RMA Restrita"
+
+
+def test_event_list_without_login_shows_only_public_events(client, audience_events):
+    response = client.get("/api/v1/events")
+
+    assert response.status_code == 200
+    assert [event["title"] for event in response.json()] == ["Batismo Regional"]
+
+
+def test_events_ics_without_login_exports_only_public_events(client, audience_events):
+    response = client.get("/api/v1/events.ics")
+
+    assert response.status_code == 200
+    assert "Batismo Regional" in response.text
+    assert "Restrita" not in response.text
+
+
+def test_annual_agenda_pdf_without_login_lists_only_public_events(client, audience_events):
+    response = client.get("/api/v1/reports/annual-agenda.pdf?year=2026")
+
+    assert response.status_code == 200
+    text = _pdf_text(response.content)
+    assert "Batismo" in text
+    assert "RMA" not in text
+    assert "Santa Ceia" not in text
+
+
+def test_monthly_notices_pdf_without_login_lists_only_public_events(client, audience_events):
+    response = client.get("/api/v1/reports/monthly-notices.pdf?year=2026&month=11")
+
+    assert response.status_code == 200
+    text = _pdf_text(response.content)
+    assert "Batismo |" in text
+    assert "Santa Ceia" not in text

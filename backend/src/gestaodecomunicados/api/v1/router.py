@@ -133,6 +133,13 @@ def _is_restricted_scope(scope: Optional[str]) -> bool:
     return normalized in {"administrativa", "ministerial"}
 
 
+def _visible_events(query, current_user: Optional[models.User]):
+    """Sem login, só evento com público-alvo "Público" (RN-02). Toda leitura de evento passa aqui."""
+    if not current_user:
+        return query.filter(models.Event.target_audience == "Público")
+    return query
+
+
 def _validate_and_prepare_event_payload(
     db: Session,
     payload: dict,
@@ -226,12 +233,8 @@ def read_events(
     if _is_restricted_scope(agenda_scope) and not current_user:
         raise HTTPException(status_code=401, detail="Authentication required for restricted agenda scope")
 
-    query = db.query(models.Event)
-    
-    # Se não estiver logado, mostra apenas Público
-    if not current_user:
-        query = query.filter(models.Event.target_audience == "Público")
-    
+    query = _visible_events(db.query(models.Event), current_user)
+
     if category_id:
         query = query.filter(models.Event.category_id == category_id)
     if city:
@@ -260,10 +263,7 @@ def export_events_ics(
     if _is_restricted_scope(agenda_scope) and not current_user:
         raise HTTPException(status_code=401, detail="Authentication required for restricted agenda scope")
 
-    query = db.query(models.Event).options(joinedload(models.Event.location))
-
-    if not current_user:
-        query = query.filter(models.Event.target_audience == "Público")
+    query = _visible_events(db.query(models.Event).options(joinedload(models.Event.location)), current_user)
 
     if category_id:
         query = query.filter(models.Event.category_id == category_id)
@@ -286,8 +286,13 @@ def export_events_ics(
     )
 
 @api_router.get("/events/{event_id}", response_model=schemas.Event)
-def read_event(event_id: int, db: Session = Depends(get_db)):
-    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+def read_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_current_user_optional),
+):
+    # Evento que o visitante não pode ver responde como inexistente
+    event = _visible_events(db.query(models.Event), current_user).filter(models.Event.id == event_id).first()
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
@@ -409,8 +414,7 @@ def export_monthly_notices_pdf(
         models.Event.event_type.in_(PUBLIC_NOTICE_TYPES)
     )
 
-    if not current_user:
-        events_query = events_query.filter(models.Event.target_audience == "Público")
+    events_query = _visible_events(events_query, current_user)
     if city:
         events_query = events_query.join(models.Location).filter(models.Location.city.ilike(f"%{city}%"))
 
@@ -467,10 +471,7 @@ def export_annual_agenda_pdf(
     if _is_restricted_scope(agenda_scope) and not current_user:
         raise HTTPException(status_code=401, detail="Authentication required for restricted agenda scope")
 
-    query = db.query(models.Event).options(joinedload(models.Event.location))
-
-    if not current_user:
-        query = query.filter(models.Event.target_audience == "Público")
+    query = _visible_events(db.query(models.Event).options(joinedload(models.Event.location)), current_user)
     if city:
         query = query.join(models.Location).filter(models.Location.city.ilike(f"%{city}%"))
     if agenda_scope:
