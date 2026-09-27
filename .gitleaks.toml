@@ -1,0 +1,5 @@
+# Regras padrão do gitleaks, sem exceção. O segredo do JWT fixo no código
+# (achado S-03) não é pego pelas regras padrão: não confie nesta varredura
+# para ele.
+[extend]
+useDefault = true

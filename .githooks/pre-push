@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Gate de push: lint do front antes de o código sair da máquina.
+# Os testes do backend precisam de /app gravável e rodam no CI (AGENTS.md, "Como rodar").
+# Chamado pelo dispatcher global (~/.git-hooks/pre-push) quando existe e é executável.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)/frontend"
+
+if [ ! -x node_modules/.bin/eslint ]; then
+    echo "→ lint do front pulado: rode 'pnpm install' em frontend/ para ligar este gate"
+    exit 0
+fi
+
+echo "→ eslint (com a linha de base de eslint-suppressions.json)"
+node_modules/.bin/eslint

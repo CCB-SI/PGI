@@ -1,0 +1,79 @@
+MODELO DE DADOS — <Nome do sistema>
+Etapa 2 do playbook de aplicação nova. Escrito por pessoa técnica ANTES de qualquer prompt.
+Regras: .ai/core/banco.md. Nomes em inglês, plural, snake_case. Toda tabela tem id, created_at, updated_at.
+Data e hora em UTC: datetime no MySQL, nunca TIMESTAMP (acaba em 2038-01-19). Unix time: bigint. Nada de deleted_at.
+Aprovado por: <nome>  em: <AAAA-MM-DD>
+
+=====================================================================
+users
+=====================================================================
+id                  bigint pk
+user_type_id        fk user_types  not null
+name                varchar(120)   not null
+email               varchar(160)   not null unique
+password            varchar(255)   not null
+must_change_password boolean       not null default true
+last_login_at       datetime       null          (quem já entrou não se exclui)
+deactivated_at      datetime       null          (desativar, não excluir: banco.md §4)
+deactivated_by      fk users       null          on delete restrict
+created_at / updated_at
+índices: user_type_id, deactivated_at, deactivated_by
+
+=====================================================================
+user_types                         (domínio fechado)
+=====================================================================
+id   name
+1    admin
+2    supervisor
+3    operator
+
+=====================================================================
+enterprises
+=====================================================================
+id                  bigint pk
+name                varchar(160)   not null
+document            varchar(18)    not null unique   (CNPJ, só dígitos)
+deactivated_at      datetime       null              (ativa = deactivated_at nulo)
+deactivated_by      fk users       null              on delete restrict
+created_at / updated_at
+índices: document (unique), deactivated_at, deactivated_by
+
+=====================================================================
+user_has_enterprises               (escopo do usuário)
+=====================================================================
+user_id             fk users       not null  on delete cascade
+enterprise_id       fk enterprises not null  on delete cascade
+pk (user_id, enterprise_id)
+
+=====================================================================
+<tabela_do_dominio>
+=====================================================================
+id
+enterprise_id       fk enterprises not null   ← toda tabela de negócio tem escopo
+<coluna>            <tipo>         <null?>    <observação>
+amount              decimal(15,2)  not null   (dinheiro nunca é float)
+status_id           fk <x>_statuses not null
+created_at / updated_at
+índices: enterprise_id, status_id, <colunas de filtro>
+unique: <o que não pode duplicar>
+
+=====================================================================
+<x>_statuses                       (domínio fechado)
+=====================================================================
+id   slug        label (pt-BR)
+1    pending     Pendente
+2    approved    Aprovado
+3    rejected    Rejeitado
+
+=====================================================================
+audit_logs
+=====================================================================
+id, user_id fk null, action varchar(80), auditable_type, auditable_id, payload json, ip varchar(45), created_at datetime
+índices: (auditable_type, auditable_id), user_id, created_at
+
+=====================================================================
+DECISÕES
+=====================================================================
+- <por que X é tabela e não coluna>
+- <o que se desativa e o que se exclui; o que conta como "já usado" para cada tabela>
+- Fuso: banco e aplicação em UTC; exibição e filtro por dia em APP_DISPLAY_TIMEZONE (<America/Sao_Paulo>).

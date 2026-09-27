@@ -1,0 +1,16 @@
+{
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "Bash|Read|Edit|Write|MultiEdit|NotebookEdit|Grep",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "d=\"${CLAUDE_PROJECT_DIR:-.}\"; [ -f \"$d/.ai/adapters/claude-code/hook.mjs\" ] || d=\"$(git rev-parse --show-toplevel 2>/dev/null)\"; node \"$d/.ai/adapters/claude-code/hook.mjs\" || exit 2",
+                        "timeout": 15
+                    }
+                ]
+            }
+        ]
+    }
+}
