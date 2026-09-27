@@ -17,37 +17,9 @@ oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login", auto
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
-@router.get("/seed")
-def seed_admin_user(db: Session = Depends(get_db)):
-    user = get_user_by_email(db, email="admin@admin.com")
-    if not user:
-        from ...core.security import get_password_hash
-        new_user = models.User(
-            email="admin@admin.com",
-            password_hash=get_password_hash("admin"),
-            role="admin"
-        )
-        db.add(new_user)
-        db.commit()
-        return {"msg": "Usuário admin@admin.com criado com sucesso. Senha: admin"}
-    return {"msg": "Usuário admin@admin.com já existia. Senha: admin"}
-
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = get_user_by_email(db, email=form_data.username)
-    
-    # Auto-seed admin user fallback
-    if not user and form_data.username == "admin@admin.com" and form_data.password == "admin":
-        from ...core.security import get_password_hash
-        new_user = models.User(
-            email="admin@admin.com",
-            password_hash=get_password_hash("admin"),
-            role="admin"
-        )
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        user = new_user
 
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
