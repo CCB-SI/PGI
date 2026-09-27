@@ -1,0 +1,107 @@
+# Travas do padrão WCJ para o Codex (política de execução). Ver .ai/adapters/README.md.
+#
+# A regra do Codex casa o COMEÇO do comando, palavra por palavra. Por isso ela é mais
+# grossa que o hook do Claude Code e do Cursor: não vê flag no fim do comando
+# (git push origin main --force) nem sabe se o banco é local. Onde não dá para saber,
+# a decisão é "prompt": o humano confirma.
+
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr", "-Rf", "-fR", "-RF", "-r", "-R", "--recursive"]],
+    decision = "forbidden",
+    justification = "Apagar recursivamente não tem volta. Peça ao humano (.ai/core/git.md, seção 3a).",
+    match = ["rm -rf app", "rm -r storage"],
+    not_match = ["rm arquivo.txt"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", ["--force", "-f", "--mirror"]],
+    decision = "forbidden",
+    justification = "git push --force reescreve o histórico do remoto (.ai/core/git.md, seção 3a).",
+    match = ["git push --force origin main", "git push -f"],
+    not_match = ["git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", ["--force-with-lease", "--force-if-includes"]],
+    decision = "prompt",
+    justification = "Ainda reescreve histórico publicado; só com um humano.",
+    match = ["git push --force-with-lease origin feat/x"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "git reset --hard apaga o que não está em commit. Use git stash.",
+    match = ["git reset --hard origin/main"],
+    not_match = ["git reset --soft HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", ["-f", "-fd", "-df", "-fdx", "-fxd", "-dfx", "-xdf", "-fx", "-xf", "-ff", "-ffd", "-ffdx", "--force"]],
+    decision = "forbidden",
+    justification = "git clean -f apaga arquivo não versionado. Liste antes com git clean -n.",
+    match = ["git clean -fd"],
+    not_match = ["git clean -n"],
+)
+
+prefix_rule(
+    pattern = [["php", "sail", "./vendor/bin/sail"], "artisan", ["migrate:fresh", "migrate:refresh", "migrate:reset", "db:wipe"]],
+    decision = "prompt",
+    justification = "Apaga o banco. Só no ambiente local, e o humano confirma que é local (.ai/core/banco.md).",
+    match = ["php artisan migrate:fresh --seed", "sail artisan db:wipe"],
+    not_match = ["php artisan migrate"],
+)
+
+prefix_rule(
+    pattern = [["php", "sail", "./vendor/bin/sail"], "artisan", "migrate", "--force"],
+    decision = "prompt",
+    justification = "--force pula a confirmação de produção. O humano confirma que é local.",
+    match = ["php artisan migrate --force"],
+)
+
+# Prisma: sem como saber se a DATABASE_URL é local, o humano confirma. `npm run db:reset` (script que
+# chama o Prisma) o Codex não enxerga; o hook do Claude Code e do Cursor lê o package.json.
+prefix_rule(
+    pattern = [["npx", "bunx", "pnpx", "pnpm", "yarn"], "prisma", "migrate", "reset"],
+    decision = "prompt",
+    justification = "Apaga o banco. Só no ambiente local, e o humano confirma que é local (.ai/core/banco.md).",
+    match = ["npx prisma migrate reset --force", "pnpm prisma migrate reset"],
+    not_match = ["npx prisma migrate status"],
+)
+
+prefix_rule(
+    pattern = ["prisma", "migrate", "reset"],
+    decision = "prompt",
+    justification = "Apaga o banco. Só no ambiente local, e o humano confirma que é local (.ai/core/banco.md).",
+    match = ["prisma migrate reset --force"],
+)
+
+prefix_rule(
+    pattern = [["npx", "bunx", "pnpx", "pnpm", "yarn"], "prisma", "db", "push", ["--force-reset", "--accept-data-loss"]],
+    decision = "prompt",
+    justification = "Apaga dado. Só no ambiente local, e o humano confirma que é local (.ai/core/banco.md).",
+    match = ["npx prisma db push --force-reset"],
+    not_match = ["npx prisma db pull"],
+)
+
+prefix_rule(
+    pattern = ["prisma", "db", "push", ["--force-reset", "--accept-data-loss"]],
+    decision = "prompt",
+    justification = "Apaga dado. Só no ambiente local, e o humano confirma que é local (.ai/core/banco.md).",
+    match = ["prisma db push --accept-data-loss"],
+)
+
+prefix_rule(
+    pattern = [["ssh", "scp", "sftp", "rsync", "mosh"]],
+    decision = "prompt",
+    justification = "Servidor remoto pode ser produção (.ai/core/principios.md, seção 5).",
+    match = ["ssh deploy@servidor", "scp dump.sql deploy@servidor:/tmp/"],
+)
+
+prefix_rule(
+    pattern = [["cat", "less", "more", "head", "tail", "source", "cp"], [".env", "./.env", ".env.local", ".env.production", ".env.staging"]],
+    decision = "forbidden",
+    justification = "O agente não lê segredo. Procure o NOME da variável no código ou no .env.example (.ai/core/seguranca.md, seção 12).",
+    match = ["cat .env", "source .env"],
+    not_match = ["cat .env.example"],
+)

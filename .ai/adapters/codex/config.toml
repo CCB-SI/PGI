@@ -1,0 +1,10 @@
+# Padrão WCJ para o Codex. Instalado em .codex/config.toml do projeto pelo sync
+# (vale quando o projeto está marcado como confiável no Codex). Ver .ai/adapters/README.md.
+#
+# "untrusted": só comando reconhecidamente de leitura roda sem perguntar; o resto pede
+# aprovação humana. As regras de .codex/rules/wcj.rules proíbem o que nem com aprovação
+# deve rodar pelo agente.
+approval_policy = "untrusted"
+
+# Escreve só dentro do projeto, sem rede por padrão.
+sandbox_mode = "workspace-write"

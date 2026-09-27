@@ -30,3 +30,12 @@ credenciais.md
 
 # Docker
 docker-compose.override.yml
+
+# Python: bytecode e cache de ferramenta em qualquer pasta
+__pycache__/
+*.pyc
+.ruff_cache/
+
+# Claude Code: worktrees criados dentro do repo e configuração pessoal
+.claude/worktrees/
+.claude/settings.local.json
