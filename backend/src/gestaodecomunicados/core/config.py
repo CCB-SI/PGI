@@ -1,7 +1,15 @@
+import hashlib
+
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 JWT_SECRET_MIN_LENGTH = 32
+
+# sha256 do segredo que ficou fixo no código até o achado S-03. O valor está no histórico do git
+# e não pode voltar. O anterior a ele tem menos de 32 caracteres e já cai no tamanho mínimo.
+LEAKED_JWT_SECRET_SHA256 = {
+    "f41d01aeeb8638fb45b6057ba7e7330ab73f245d9d89aa73a71f73b62c0ce324",
+}
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Gestão de Comunicados API"
@@ -29,9 +37,14 @@ class Settings(BaseSettings):
     @field_validator("JWT_SECRET_KEY")
     @classmethod
     def jwt_secret_long_enough(cls, value: SecretStr) -> SecretStr:
-        if len(value.get_secret_value()) < JWT_SECRET_MIN_LENGTH:
+        secret = value.get_secret_value()
+        if len(secret) < JWT_SECRET_MIN_LENGTH:
             raise ValueError(
                 f"precisa de pelo menos {JWT_SECRET_MIN_LENGTH} caracteres; gere com: openssl rand -hex 32"
+            )
+        if hashlib.sha256(secret.encode()).hexdigest() in LEAKED_JWT_SECRET_SHA256:
+            raise ValueError(
+                "é um valor que já esteve no código (achado S-03); gere outro com: openssl rand -hex 32"
             )
         return value
 
