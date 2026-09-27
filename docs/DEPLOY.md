@@ -6,7 +6,7 @@ Runbook. Regras em `.ai/core/deploy.md`. Descreve o que o repositório mostra em
 
 | Ambiente | URL | Servidor | Branch | Disparo |
 |---|---|---|---|---|
-| produção | http://pgri.admsiga.org.br:3005 | VPS 69.169.103.28 (`vps3199695.trouble-free.net`) | `main`, com alterações locais feitas na VPS | manual, na VPS (a confirmar) |
+| produção | http://pgri.admsiga.org.br:3005 | VPS 69.169.103.28 (`vps3199695.trouble-free.net`) | `main`, com alterações locais feitas na VPS | automático quando a `main` muda, segundo o Lucas (27/09/2026); o mecanismo e o que ele roda, a confirmar com o Alaor |
 
 ## Como a produção roda, pelo que está no git
 
@@ -35,6 +35,8 @@ Modelo com os nomes e sem valores: `backend/.env.example`.
 **B. O código no servidor aplica o schema:** o backend roda `create_all` e `migrate_db()` ao subir. Com o `--reload`, basta o arquivo mudar no disco. Mudança de schema precisa ser aditiva (coluna nova com nulo permitido), porque não há volta automática.
 
 **Variável obrigatória nova entra antes do código.** Com o `--reload`, o código novo sobe assim que o `git pull` muda o arquivo no disco. Se a variável ainda não estiver no container, a API para de responder, mas o container continua "Up" (o supervisor do `--reload` segue vivo) e o `restart` não age. Ordem: linha no `backend/.env`, `docker compose up -d --force-recreate backend` (o código antigo ignora a variável) e só então o `git pull`.
+
+**Com deploy automático, o merge é o deploy.** O que precisa vir antes do código (backup, variável obrigatória nova, conta a ajustar) acontece na VPS antes do merge, ou com o deploy automático pausado durante a janela.
 
 ## Passo a passo (proposta, até ser confirmado com quem opera)
 
