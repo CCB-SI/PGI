@@ -57,10 +57,7 @@ Um sistema web completo para a centralização de informações técnicas, calen
    cd gestaodesecretaria
    ```
 
-2. **Crie o `backend/.env` a partir do modelo:** o backend não sobe sem `JWT_SECRET_KEY`.
-   ```bash
-   cp -n backend/.env.example backend/.env   # e preencha JWT_SECRET_KEY com a saída de: openssl rand -hex 32
-   ```
+2. **Crie o `backend/.env`:** copie o `backend/.env.example` e preencha `JWT_SECRET_KEY` com a saída de `openssl rand -hex 32`. Sem ela, o backend não sobe.
 
 3. **Dê boot unificado nos containers pelo Terminal:**
    ```bash

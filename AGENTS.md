@@ -134,11 +134,10 @@ Stack: Python 3.11 (imagem `python:3.11-slim`), FastAPI, SQLAlchemy 2, Pydantic 
 
 ## Como rodar
 
-O jeito como o sistema foi feito para rodar é o Docker Compose, mas hoje ele não sobe completo a partir do git: o serviço `frontend` quebra no build por falta do `package-lock.json` (achado H-03). O que funciona:
+O jeito como o sistema foi feito para rodar é o Docker Compose, mas hoje ele não sobe completo a partir do git: o serviço `frontend` quebra no build por falta do `package-lock.json` (achado H-03). Antes de subir o backend, crie o `backend/.env` a partir do `backend/.env.example` e preencha `JWT_SECRET_KEY` com a saída de `openssl rand -hex 32`: sem ela o container fica "Up" e a API não responde. O que funciona:
 
 ```bash
 # backend no Docker: API em http://localhost:8005, Swagger em /docs
-cp -n backend/.env.example backend/.env   # e preencha JWT_SECRET_KEY: openssl rand -hex 32
 docker compose up -d --build backend
 docker compose exec backend uv run python -m gestaodecomunicados.contas criar-admin <seu-e-mail>
 
@@ -169,7 +168,7 @@ A URL e o IP vêm do `ALLOWED_ORIGINS` do `docker-compose.yml`. A VPS está em `
 ## Autorização
 
 - Papéis em `users.role`: `admin`, `editor` e `ministerial` (`api/v1/endpoints/users.py`). Sem login, o visitante é público.
-- Leitura pública: eventos, informativos, comuns, horários, irmãos, categorias e downloads. Sem login, eventos, informativos e downloads trazem só o que tem `target_audience` "Público"; agenda com `agenda_scope` administrativa ou ministerial exige login (qualquer papel). Toda leitura de evento (lista, detalhe, `.ics` e PDFs) passa por `_visible_events` em `api/v1/router.py`; evento que o visitante não pode ver responde 404.
+- Leitura pública: eventos, informativos, comuns, horários, irmãos, categorias e downloads. Sem login, eventos, informativos e downloads trazem só o que tem `target_audience` "Público". Toda leitura de evento (lista, detalhe, `.ics` e PDFs) passa por `_visible_events` em `api/v1/router.py`; evento que o visitante não pode ver responde 404. O que decide é só o público-alvo: pedir `agenda_scope=Administrativa` ou `Ministerial` sem login dá 401, mas evento de escopo administrativo marcado "Público" sai na lista pública, e esse é o padrão do servidor para evento novo (achado S-11, de que lado vale a regra é decisão humana).
 - `editor` e `admin` criam e editam comuns, horários, eventos, informativos, downloads e geram documentos (`require_editor_or_admin`).
 - Só `admin`: usuários, auditoria, previsão da cozinha, modelos e emissões de documento, e várias exclusões (`require_admin`).
 - `ministerial` só amplia a leitura: a dependência `require_restricted_user` existe, mas nenhuma rota a usa.
@@ -214,6 +213,7 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 - O serviço `frontend` do compose não builda a partir do git (o Dockerfile copia um `package-lock.json` que não existe; o lockfile é do pnpm).
 - O compose exige `backend/.env`, e o backend não sobe sem `JWT_SECRET_KEY` nele (modelo em `backend/.env.example`).
 - O `backend/uv.lock` do git está defasado do `pyproject.toml` (achado H-12): o `uv run` refaz o lock na hora. Rodando os testes com a pasta `backend` montada no container, o lock sai modificado; restaure antes de commitar.
+- O `fetchEvents` do front não manda o token (achado B-06): logado, a lista de eventos só traz o público, e `/agenda-ministerial` recebe 401 e desloga quem entra nela.
 - `backend/uploads/` e 25 arquivos `.pyc` estão no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
 - `pnpm install` com pnpm 11 ou mais novo para em "Ignored build scripts" (`ERR_PNPM_IGNORED_BUILDS`); o CI usa pnpm 10, que só avisa.
 - `docker-compose.yml` publica o `NEXT_PUBLIC_BACKEND_URL` como `http://localhost:8005`: foto de comum no navegador de outra máquina aponta para o localhost dela.
