@@ -64,7 +64,7 @@ def test_kitchen_forecast_returns_only_events_with_meals(client, db_session, see
     assert payload["summary"]["estimated_meals_total"] == 480
     assert len(payload["items"]) == 2
     location_names = {item["location_name"] for item in payload["items"]}
-    assert location_names == {"Jardim das Acácias", "Gopouva"}
+    assert location_names == {"Jardim das Acácias", "Gopouva (Guarulhos)"}
 
 
 def test_kitchen_forecast_requires_admin_auth(client, ministerial_auth_headers):
