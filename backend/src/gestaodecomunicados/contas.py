@@ -1,7 +1,7 @@
 """Contas de acesso pela linha de comando, dentro do container do backend.
 
-    python -m gestaodecomunicados.contas criar-admin <e-mail>
-    python -m gestaodecomunicados.contas trocar-senha <e-mail>
+    uv run python -m gestaodecomunicados.contas criar-admin <e-mail>
+    uv run python -m gestaodecomunicados.contas trocar-senha <e-mail>
 
 A senha vem da variável NOVA_SENHA; sem ela, é gerada e impressa uma única vez.
 Uso no servidor: docs/DEPLOY.md, seção "Contas de acesso".
@@ -19,6 +19,9 @@ from .core.security import get_password_hash
 from .models import all_models as models
 
 MIN_PASSWORD_LENGTH = 10
+MAX_PASSWORD_BYTES = 72  # limite do bcrypt
+
+_EMAIL = TypeAdapter(EmailStr)
 
 
 class AccountError(Exception):
@@ -34,6 +37,17 @@ def validate_password(password: str) -> None:
         raise AccountError(
             f"A senha precisa de pelo menos {MIN_PASSWORD_LENGTH} caracteres, com letras e números."
         )
+    if len(password.encode()) > MAX_PASSWORD_BYTES:
+        raise AccountError(f"A senha pode ter no máximo {MAX_PASSWORD_BYTES} bytes.")
+
+
+def _find_user(db, email: str):
+    """Acha a conta pelo e-mail como foi digitado ou como o EmailStr o grava (domínio em minúsculas)."""
+    try:
+        normalized = _EMAIL.validate_python(email)
+    except ValidationError:
+        normalized = email
+    return db.query(models.User).filter(models.User.email.in_({email, normalized})).first()
 
 
 def generate_password() -> str:
@@ -45,22 +59,22 @@ def generate_password() -> str:
 
 def create_admin(db, email: str, password: str) -> models.User:
     try:
-        email = TypeAdapter(EmailStr).validate_python(email)
+        normalized = _EMAIL.validate_python(email)
     except ValidationError:
         raise AccountError(f"E-mail inválido: {email}") from None
-    if db.query(models.User).filter(models.User.email == email).first():
+    if _find_user(db, email):
         raise AccountError(
             f"Já existe uma conta com o e-mail {email}. Para trocar a senha: trocar-senha."
         )
     validate_password(password)
-    user = models.User(email=email, password_hash=get_password_hash(password), role="admin")
+    user = models.User(email=normalized, password_hash=get_password_hash(password), role="admin")
     db.add(user)
     db.commit()
     return user
 
 
 def change_password(db, email: str, password: str) -> models.User:
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = _find_user(db, email)
     if not user:
         raise AccountError(f"Nenhuma conta com o e-mail {email}.")
     validate_password(password)
@@ -71,7 +85,7 @@ def change_password(db, email: str, password: str) -> models.User:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
-        prog="python -m gestaodecomunicados.contas",
+        prog="uv run python -m gestaodecomunicados.contas",
         description="Cria administrador ou troca senha. A senha vem de NOVA_SENHA ou é gerada.",
     )
     actions = parser.add_subparsers(dest="action", required=True)

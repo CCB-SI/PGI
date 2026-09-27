@@ -107,7 +107,7 @@ def init_db():
     if not db.query(all_models.User).filter(all_models.User.role == "admin").first():
         print(
             "Nenhum administrador cadastrado. Crie o primeiro com: "
-            "python -m gestaodecomunicados.contas criar-admin <e-mail>"
+            "uv run python -m gestaodecomunicados.contas criar-admin <e-mail>"
         )
 
     reference_locations = [

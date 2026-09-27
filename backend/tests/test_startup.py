@@ -16,4 +16,5 @@ def test_backend_startup_without_admin_points_to_the_command(boot_backend):
     result = boot_backend()
 
     assert result.returncode == 0, result.stderr
-    assert "gestaodecomunicados.contas criar-admin" in result.stdout
+    # No container, só o `uv run` enxerga as dependências do projeto
+    assert "uv run python -m gestaodecomunicados.contas criar-admin" in result.stdout

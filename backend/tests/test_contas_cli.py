@@ -46,6 +46,13 @@ def test_create_admin_rejects_weak_password(cli, db_session, monkeypatch):
     assert db_session.query(models.User).count() == 0
 
 
+def test_create_admin_rejects_password_longer_than_bcrypt_accepts(cli, db_session, monkeypatch):
+    monkeypatch.setenv("NOVA_SENHA", "senha1" * 13)  # 78 bytes; o bcrypt só aceita até 72
+
+    assert cli(["criar-admin", "admin.longa@teste.com"]) == 1
+    assert db_session.query(models.User).count() == 0
+
+
 def test_create_admin_rejects_invalid_email(cli, db_session, monkeypatch):
     monkeypatch.setenv("NOVA_SENHA", "senhadeteste123")
 
@@ -79,6 +86,17 @@ def test_change_password_with_generated_password(cli, client, db_session, capsys
 
     password = capsys.readouterr().out.strip().splitlines()[-1]
     assert _login(client, "conta.gerada@teste.com", password).status_code == 200
+
+
+def test_change_password_finds_the_account_by_the_email_typed_on_creation(cli, client, monkeypatch):
+    # criar-admin grava o domínio em minúsculas; trocar-senha precisa achar a conta do mesmo jeito
+    monkeypatch.setenv("NOVA_SENHA", "senhadeteste123")
+    assert cli(["criar-admin", "Chefe@Exemplo.COM.br"]) == 0
+
+    monkeypatch.setenv("NOVA_SENHA", "outrasenha456")
+    assert cli(["trocar-senha", "Chefe@Exemplo.COM.br"]) == 0
+
+    assert _login(client, "Chefe@exemplo.com.br", "outrasenha456").status_code == 200
 
 
 def test_change_password_of_unknown_email_fails(cli, monkeypatch):
