@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    # O código cria pastas em /app no import (pdf_service.py, main.py), como no
+    # container de produção. A imagem python:3.11-slim roda como root e reproduz
+    # isso sem mudar código; /app/templates aponta para backend/templates, como
+    # no volume do docker-compose.
+    container: python:3.11-slim
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instala o uv
+        run: pip install --no-cache-dir uv
+      - name: /app como no docker-compose
+        run: |
+          mkdir -p /app/uploads
+          ln -s "$GITHUB_WORKSPACE/backend/templates" /app/templates
+      - name: Dependências do lockfile, sem atualizar
+        run: uv sync --extra dev --frozen
+      - run: uv run pytest -q
+
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      # lockfile v9; pnpm 11+ para em "Ignored build scripts", o 10 só avisa
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # As 16 violações antigas estão congeladas em eslint-suppressions.json;
+      # violação nova quebra.
+      - run: pnpm lint
+      - run: pnpm build
+
+  travas:
+    name: Travas de agente (.ai/adapters)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test .ai/adapters/guard/*.test.mjs
+
+  gitleaks:
+    name: Segredos (histórico completo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # A gitleaks-action exige licença paga em repositório de organização; o binário é livre.
+      - name: Instala o gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          base=https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}
+          curl -sSfLO "$base/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          sha256sum --check --ignore-missing "gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          tar -xzf "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" gitleaks
+      - name: Varre o histórico
+        run: ./gitleaks git --config .gitleaks.toml --redact --verbose .
