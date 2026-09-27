@@ -1,6 +1,8 @@
 # PGRI Santa Isabel
 ## Plataforma de Gestão Regional Integrada
 
+> Quem vai desenvolver, pessoa ou IA, começa por [`docs/00-COMECE-AQUI.md`](docs/00-COMECE-AQUI.md) e [`AGENTS.md`](AGENTS.md). Deploy: [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 Um sistema web completo para a centralização de informações técnicas, calendários de ensaios e suporte aos músicos da Regional SAI (Santa Isabel, Arujá e Igaratá).
 
 ## 🚀 Funcionalidades Principais
