@@ -40,7 +40,7 @@ S-01 a S-03 juntos: qualquer pessoa que alcance a API vira administradora. A cor
 | # | Achado |
 |---|---|
 | H-01 | `backend/uploads/` (fotos e arquivos enviados) está no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: mover para fora da árvore e só depois tirar do índice, combinado com quem opera o servidor. |
-| H-02 | 25 arquivos `.pyc` versionados. O `.gitignore` agora ignora novos; tirar os atuais segue o mesmo cuidado do H-01. Eles guardam na árvore atual o segredo antigo do JWT e as credenciais padrão (`core/__pycache__/security.cpython-312.pyc`, `api/v1/__pycache__/auth.cpython-312.pyc` e outros): quem protege é a troca do segredo (S-03). A imagem é Python 3.11 e ignora `cpython-312`, então tirá-los não afeta a VPS; a decisão é humana (AGENTS.md). |
+| H-02 | 25 arquivos `.pyc` versionados, todos `cpython-312`, com o segredo antigo do JWT e as credenciais padrão. Saem do git no PR #2, com aprovação do Lucas em 27/09/2026: a imagem é Python 3.11 e ignora `cpython-312`, então a VPS não sente a remoção. Continuam no histórico, e quem protege é a troca do segredo (S-03). O `.gitignore` já ignora novos. |
 | H-03 | O `frontend/Dockerfile` roda `npm install` sobre um `package-lock.json` que não está no git; o lockfile do projeto é do pnpm. O compose não sobe a partir de um clone limpo. |
 | H-04 | O compose exige `backend/.env` e não há `backend/.env.example` (existiu no histórico). O PR #2 traz o modelo de volta, com `JWT_SECRET_KEY`. |
 | H-05 | Commits feitos na VPS (autor `root`) e merge de alterações locais em 07/07/2026: o servidor pode ter código que a `main` não tem. |

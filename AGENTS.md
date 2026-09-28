@@ -194,7 +194,7 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 - Qualquer mudança em `api/v1/auth.py`, `core/security.py`, `contas.py`, no `JWT_SECRET_KEY` de `core/config.py`, em papéis ou na sessão do front.
 - Tocar a VPS, o volume `db_data`, `backend/uploads/` ou o banco de produção. Trocar o `JWT_SECRET_KEY` da VPS derruba todos os logins.
 - Mudar `migrate_db()` ou adotar ferramenta de migração.
-- Tirar do git arquivos já versionados (`__pycache__`, `backend/uploads/`): o `git pull` na VPS apagaria a cópia de lá.
+- Tirar do git arquivos já versionados (`backend/uploads/`): o `git pull` na VPS apagaria a cópia de lá.
 - Reescrever o histórico para tirar o banco que foi commitado em 02/2026.
 
 ## Um jeito só
@@ -214,7 +214,7 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 - O compose exige `backend/.env`, e o backend não sobe sem `JWT_SECRET_KEY` nele (modelo em `backend/.env.example`).
 - O `backend/uv.lock` do git está defasado do `pyproject.toml` (achado H-12): o `uv run` refaz o lock na hora. Rodando os testes com a pasta `backend` montada no container, o lock sai modificado; restaure antes de commitar.
 - O `fetchEvents` do front não manda o token (achado B-06): logado, a lista de eventos só traz o público, e `/agenda-ministerial` recebe 401 e desloga quem entra nela.
-- `backend/uploads/` e 25 arquivos `.pyc` estão no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
+- `backend/uploads/` está no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
 - `pnpm install` com pnpm 11 ou mais novo para em "Ignored build scripts" (`ERR_PNPM_IGNORED_BUILDS`); o CI usa pnpm 10, que só avisa.
 - `docker-compose.yml` publica o `NEXT_PUBLIC_BACKEND_URL` como `http://localhost:8005`: foto de comum no navegador de outra máquina aponta para o localhost dela.
 - README e compose divergem nas portas: o compose publica 3005 (front) e 8005 (API).
