@@ -149,8 +149,14 @@ pnpm dev
 O backend não roda fora de um container: `pdf_service.py` e `main.py` criam pastas em `/app` no import, e isso falha no Mac. Por isso os testes do backend rodam no CI dentro de `python:3.11-slim`, com `/app/templates` apontando para `backend/templates`. Com Docker na máquina, o equivalente é:
 
 ```bash
-docker run --rm -v "$PWD/backend:/src" -w /src -e UV_PROJECT_ENVIRONMENT=/tmp/venv python:3.11-slim \
-  sh -c "pip install -q uv && mkdir -p /app/uploads && ln -s /src/templates /app/templates && uv sync --extra dev --frozen && uv run pytest -q"
+docker run --rm -v "$PWD/backend:/src:ro" -w /src -e UV_PROJECT_ENVIRONMENT=/tmp/venv -e PYTHONDONTWRITEBYTECODE=1 python:3.11-slim \
+  sh -c "pip install -q uv==0.12.19 && mkdir -p /app/uploads && ln -s /src/templates /app/templates && uv sync --extra dev --locked && uv run --frozen pytest -q -p no:cacheprovider"
+```
+
+Mudou dependência no `backend/pyproject.toml`: refaça o `backend/uv.lock` com o mesmo uv do CI e commite os dois juntos. O CI roda `uv sync --locked` e falha com o lock defasado (achado H-12).
+
+```bash
+docker run --rm -v "$PWD/backend:/src" -w /src python:3.11-slim sh -c "pip install -q uv==0.12.19 && uv lock"
 ```
 
 Escada da fatia: testes do backend (acima ou no CI) → `cd frontend && pnpm lint && pnpm build` → `node --test .ai/adapters/guard/*.test.mjs`. O CI (`.github/workflows/ci.yml`) roda tudo isso e a varredura de segredos no histórico.
