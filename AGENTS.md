@@ -109,7 +109,7 @@ Os achados (segurança, bugs, higiene e dependências) estão em `docs/revisoes/
 | `/up` | `GET /health` no backend |
 | `design/tokens.json` | não há: CSS próprio em `frontend/src/app/globals.css` e `stitch-tailwind.css`. A fase F1 troca por tokens do ccb-ui |
 
-Stack: Python 3.11 (imagem `python:3.11-slim`), FastAPI, SQLAlchemy 2, Pydantic 2, python-jose (JWT HS256), bcrypt, PyMuPDF, boto3 (S3 opcional), uv · Next.js 16.1, React 19.2, JavaScript, pnpm, Tailwind 3 (o `@tailwindcss/postcss` 4 instalado não é usado pelo `postcss.config.js`), shadcn com `@base-ui/react`, lucide-react · SQLite · Docker Compose.
+Stack: Python 3.11 (imagem `python:3.11-slim`), FastAPI, SQLAlchemy 2, Pydantic 2, python-jose (JWT HS256), bcrypt, PyMuPDF, boto3 (S3 opcional), uv · Next.js 16.3, React 19.2, JavaScript, pnpm, Tailwind 3 (o `@tailwindcss/postcss` 4 instalado não é usado pelo `postcss.config.js`), shadcn com `@base-ui/react`, lucide-react · SQLite · Docker Compose.
 
 | Pasta | O que tem |
 |---|---|
