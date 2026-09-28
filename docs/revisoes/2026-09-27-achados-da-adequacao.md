@@ -23,6 +23,10 @@ S-01 a S-03 juntos: qualquer pessoa que alcance a API vira administradora. A cor
 
 ## Bugs
 
+B-06: correção proposta no PR #3 (branch `fix/fetch-events-token`): `fetchEvents` e `fetchNews` mandam o token, como as outras leituras do `api.js`; o `fetchNews` tinha o mesmo defeito e deixava `/ministerial` sempre sem os informativos ministeriais. Provado no navegador contra o ambiente local; passa a "corrigido" depois do merge e da verificação na produção.
+
+B-07 (visto no navegador em 28/09/2026, ao provar o B-06): `/agenda-ministerial` pede só `agenda_scope=Administrativa`, e evento de escopo "Ministerial" não chega à tela, embora ela filtre os dois escopos (`frontend/src/app/agenda-ministerial/page.js:62,69`). Qual agenda mostra o escopo Ministerial é decisão humana; fica fora da correção do B-06.
+
 | # | Achado | Onde |
 |---|---|---|
 | B-01 | `GET /api/v1/reports/kitchen-forecast` sem `end_date` dá erro 500: `timedelta` não está importado. Achado pelo `ruff` (F821). | `backend/src/gestaodecomunicados/api/v1/router.py:528` |
@@ -30,6 +34,7 @@ S-01 a S-03 juntos: qualquer pessoa que alcance a API vira administradora. A cor
 | B-03 | A auditoria só registra ações de documentos. Criar, editar e excluir evento, comum, informativo, irmão, usuário e download não deixa rastro. | `log_audit` só em `api/v1/endpoints/documents.py` |
 | B-04 | No compose do git, `NEXT_PUBLIC_BACKEND_URL` é `http://localhost:8005`: a foto de comum aponta para o localhost de quem abre a página. | `docker-compose.yml`, `frontend/src/services/api.js:545` |
 | B-05 | A tela `/ministerio` não tem link em nenhum lugar; o menu leva a `/ministerial`. | `frontend/src/app/ministerio/page.js`, `frontend/src/components/Header.js:55` |
+| B-06 | `fetchEvents` não manda o token: logado, a lista de eventos só traz o público, e `/agenda-ministerial` pede `agenda_scope=Administrativa` sem token, recebe 401 e o `apiFetch` desloga a pessoa. Achado em 27/09/2026, na revisão do PR #2; conferir se a VPS tem versão diferente (H-05). | `frontend/src/services/api.js:39-49`, `frontend/src/app/agenda-ministerial/page.js:62` |
 
 ## Higiene e operação
 
