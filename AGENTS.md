@@ -117,6 +117,7 @@ Stack: Python 3.11 (imagem `python:3.11-slim`), FastAPI, SQLAlchemy 2, Pydantic 
 | `backend/src/gestaodecomunicados/api/v1/router.py` | a maior parte das rotas: eventos, tipos de evento, relatórios, categorias, irmãos, comuns, horários e informativos |
 | `backend/src/gestaodecomunicados/api/v1/endpoints/` | downloads (`resources.py`), documentos e M02 (`documents.py`), usuários, auditoria e contato |
 | `backend/src/gestaodecomunicados/api/v1/auth.py` | login, JWT e as dependências de autorização |
+| `backend/src/gestaodecomunicados/contas.py` | linha de comando: cria administrador e troca senha, dentro do container (`docs/DEPLOY.md`, "Contas de acesso") |
 | `backend/src/gestaodecomunicados/models/` | todas as tabelas (`all_models.py`, `resource_model.py`) |
 | `backend/src/gestaodecomunicados/schemas/` | Pydantic |
 | `backend/src/gestaodecomunicados/services/` | regras de evento (conflito, lotação, geofencing), recorrência, PDF e auditoria |
@@ -133,12 +134,12 @@ Stack: Python 3.11 (imagem `python:3.11-slim`), FastAPI, SQLAlchemy 2, Pydantic 
 
 ## Como rodar
 
-O jeito como o sistema foi feito para rodar é o Docker Compose, mas hoje ele não sobe completo a partir do git: o serviço `frontend` quebra no build por falta do `package-lock.json` (achado H-03). O que funciona:
+O jeito como o sistema foi feito para rodar é o Docker Compose, mas hoje ele não sobe completo a partir do git: o serviço `frontend` quebra no build por falta do `package-lock.json` (achado H-03). Antes de subir o backend, crie o `backend/.env` a partir do `backend/.env.example` e preencha `JWT_SECRET_KEY` com a saída de `openssl rand -hex 32`: sem ela o container fica "Up" e a API não responde. O que funciona:
 
 ```bash
 # backend no Docker: API em http://localhost:8005, Swagger em /docs
-touch backend/.env                     # o compose exige o arquivo, mesmo vazio
 docker compose up -d --build backend
+docker compose exec backend uv run python -m gestaodecomunicados.contas criar-admin <seu-e-mail>
 
 # frontend na máquina: http://localhost:3000, com /api/v1 indo para http://localhost:8005
 cd frontend
@@ -173,12 +174,12 @@ A URL e o IP vêm do `ALLOWED_ORIGINS` do `docker-compose.yml`. A VPS está em `
 ## Autorização
 
 - Papéis em `users.role`: `admin`, `editor` e `ministerial` (`api/v1/endpoints/users.py`). Sem login, o visitante é público.
-- Leitura pública: eventos, informativos, comuns, horários, irmãos, categorias e downloads. Sem login, listas de eventos, informativos e downloads trazem só o que tem `target_audience` "Público"; agenda com `agenda_scope` administrativa ou ministerial exige login (qualquer papel). Exceção que vaza: `GET /api/v1/events/{event_id}` não filtra o público-alvo (achado S-04).
+- Leitura pública: eventos, informativos, comuns, horários, irmãos, categorias e downloads. Sem login, eventos, informativos e downloads trazem só o que tem `target_audience` "Público". Toda leitura de evento (lista, detalhe, `.ics` e PDFs) passa por `_visible_events` em `api/v1/router.py`; evento que o visitante não pode ver responde 404. O que decide é só o público-alvo: pedir `agenda_scope=Administrativa` ou `Ministerial` sem login dá 401, mas evento de escopo administrativo marcado "Público" sai na lista pública, e esse é o padrão do servidor para evento novo (achado S-11, de que lado vale a regra é decisão humana).
 - `editor` e `admin` criam e editam comuns, horários, eventos, informativos, downloads e geram documentos (`require_editor_or_admin`).
 - Só `admin`: usuários, auditoria, previsão da cozinha, modelos e emissões de documento, e várias exclusões (`require_admin`).
 - `ministerial` só amplia a leitura: a dependência `require_restricted_user` existe, mas nenhuma rota a usa.
 - O front guarda o token e o usuário no `localStorage` (`AuthContext`), e o `apiFetch` limpa a sessão no primeiro 401.
-- Segurança do login e do segredo do JWT: achados S-01 a S-03, em aberto.
+- Não há administrador padrão: o primeiro e a troca de senha são pela linha de comando (`contas.py`). O JWT é assinado com `JWT_SECRET_KEY` (obrigatória, lida em `core/config.py`). Login sem limite de tentativas: achado S-06, em aberto.
 
 ## Regras de domínio
 
@@ -196,10 +197,10 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 
 ## O que exige aprovação humana neste projeto
 
-- Qualquer mudança em `api/v1/auth.py`, `core/security.py`, papéis ou sessão do front.
-- Tocar a VPS, o volume `db_data`, `backend/uploads/` ou o banco de produção.
+- Qualquer mudança em `api/v1/auth.py`, `core/security.py`, `contas.py`, no `JWT_SECRET_KEY` de `core/config.py`, em papéis ou na sessão do front.
+- Tocar a VPS, o volume `db_data`, `backend/uploads/` ou o banco de produção. Trocar o `JWT_SECRET_KEY` da VPS derruba todos os logins.
 - Mudar `migrate_db()` ou adotar ferramenta de migração.
-- Tirar do git arquivos já versionados (`__pycache__`, `backend/uploads/`): o `git pull` na VPS apagaria a cópia de lá.
+- Tirar do git arquivos já versionados (`backend/uploads/`): o `git pull` na VPS apagaria a cópia de lá.
 - Reescrever o histórico para tirar o banco que foi commitado em 02/2026.
 
 ## Um jeito só
@@ -216,8 +217,9 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 ## Armadilhas que já custaram tempo
 
 - O serviço `frontend` do compose não builda a partir do git (o Dockerfile copia um `package-lock.json` que não existe; o lockfile é do pnpm).
-- O compose exige `backend/.env`, mesmo vazio.
-- `backend/uploads/` e 25 arquivos `.pyc` estão no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
+- O compose exige `backend/.env`, e o backend não sobe sem `JWT_SECRET_KEY` nele (modelo em `backend/.env.example`).
+- O `backend/uv.lock` do git está defasado do `pyproject.toml` (achado H-12): o `uv run` refaz o lock na hora. Rodando os testes com a pasta `backend` montada no container, o lock sai modificado; restaure antes de commitar.
+- `backend/uploads/` está no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
 - `pnpm install` com pnpm 11 ou mais novo para em "Ignored build scripts" (`ERR_PNPM_IGNORED_BUILDS`); o CI usa pnpm 10, que só avisa.
 - `docker-compose.yml` publica o `NEXT_PUBLIC_BACKEND_URL` como `http://localhost:8005`: foto de comum no navegador de outra máquina aponta para o localhost dela.
 - README e compose divergem nas portas: o compose publica 3005 (front) e 8005 (API).

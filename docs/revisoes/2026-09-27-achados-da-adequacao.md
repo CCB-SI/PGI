@@ -6,20 +6,23 @@ Estado de cada achado: **em aberto** até haver commit, merge e verificação no
 
 ## Segurança
 
-| # | Achado | Onde | Gravidade |
-|---|---|---|---|
-| S-01 | `GET /api/v1/auth/seed` é público e cria `admin@admin.com` com senha fixa, se ele não existir. O login faz o mesmo quando recebe essas credenciais. | `backend/src/gestaodecomunicados/api/v1/auth.py:20-50` | crítica |
-| S-02 | `init_db()` cria `admin@secretaria.com` com senha fixa toda vez que o backend sobe sem esse usuário. O `README.md` publica as duas credenciais. | `backend/src/gestaodecomunicados/main.py:105-112`, `README.md` | crítica |
-| S-03 | Segredo do JWT fixo no código desde 20/02/2026 (`967896d`); o valor atual, também de exemplo, entrou em `442a6ee`. Os dois valores estão no histórico. Quem conhece o valor assina token de qualquer papel. Correção: ler de variável de ambiente e **trocar o segredo** no servidor (todos os tokens atuais caem). | `backend/src/gestaodecomunicados/core/security.py:6` | crítica |
-| S-04 | `GET /api/v1/events/{event_id}` é público e não filtra o público-alvo: evento restrito (agenda ministerial e administrativa) sai para quem chutar o ID. A listagem filtra; o detalhe, não. | `backend/src/gestaodecomunicados/api/v1/router.py:288` | alta |
-| S-05 | O compose do git sobe `next dev` e `uvicorn --reload`, publica as portas 3005 e 8005 no host (API e Swagger `/docs` direto, sem proxy) e não tem HTTPS. | `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile` | alta |
-| S-06 | Login sem limite de tentativas. | `POST /api/v1/auth/login` | alta |
-| S-07 | Um banco SQLite real (`backend/gestaodecomunicados.db`) foi commitado em 20/02/2026 (`967896d`) e removido em `442a6ee`; continua recuperável no histórico e pode ter dado pessoal. Tirar do histórico é reescrita (`--force`), decisão humana. | histórico do git | média (repositório privado) |
-| S-08 | O formulário de contato imprime nome, e-mail e mensagem no log do container. | `backend/src/gestaodecomunicados/api/v1/endpoints/contact.py` | média |
-| S-09 | Token JWT e dados do usuário ficam no `localStorage`: um XSS lê a sessão. | `frontend/src/context/AuthContext.js` | média |
-| S-10 | `GET /api/v1/documents/templates/{id}/view` é público e devolve o PDF do modelo. | `backend/src/gestaodecomunicados/api/v1/endpoints/documents.py:358` | baixa (modelo em branco) |
+| # | Achado | Onde | Gravidade | Estado |
+|---|---|---|---|---|
+| S-01 | `GET /api/v1/auth/seed` é público e cria `admin@admin.com` com senha fixa, se ele não existir. O login faz o mesmo quando recebe essas credenciais. | `backend/src/gestaodecomunicados/api/v1/auth.py:20-50` | crítica | em aberto, com correção proposta no PR #2 |
+| S-02 | `init_db()` cria `admin@secretaria.com` com senha fixa toda vez que o backend sobe sem esse usuário. O `README.md` publica as duas credenciais. | `backend/src/gestaodecomunicados/main.py:105-112`, `README.md` | crítica | em aberto, com correção proposta no PR #2; senha das contas padrão e de teste da produção a trocar |
+| S-03 | Segredo do JWT fixo no código desde 20/02/2026 (`967896d`); o valor atual, também de exemplo, entrou em `442a6ee`. Os dois valores estão no histórico. Quem conhece o valor assina token de qualquer papel. Correção: ler de variável de ambiente e **trocar o segredo** no servidor (todos os tokens atuais caem). | `backend/src/gestaodecomunicados/core/security.py:6` | crítica | em aberto, com correção proposta no PR #2; troca do segredo na VPS pendente |
+| S-04 | `GET /api/v1/events/{event_id}` é público e não filtra o público-alvo: evento restrito (agenda ministerial e administrativa) sai para quem chutar o ID. A listagem filtra; o detalhe, não. | `backend/src/gestaodecomunicados/api/v1/router.py:288` | alta | em aberto, com correção proposta no PR #2 |
+| S-05 | O compose do git sobe `next dev` e `uvicorn --reload`, publica as portas 3005 e 8005 no host (API e Swagger `/docs` direto, sem proxy) e não tem HTTPS. | `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile` | alta | em aberto |
+| S-06 | Login sem limite de tentativas. | `POST /api/v1/auth/login` | alta | em aberto |
+| S-07 | Um banco SQLite real (`backend/gestaodecomunicados.db`) foi commitado em 20/02/2026 (`967896d`) e removido em `442a6ee`; continua recuperável no histórico e pode ter dado pessoal. Tirar do histórico é reescrita (`--force`), decisão humana. | histórico do git | média (repositório privado) | em aberto |
+| S-08 | O formulário de contato imprime nome, e-mail e mensagem no log do container. | `backend/src/gestaodecomunicados/api/v1/endpoints/contact.py` | média | em aberto |
+| S-09 | Token JWT e dados do usuário ficam no `localStorage`: um XSS lê a sessão. | `frontend/src/context/AuthContext.js` | média | em aberto |
+| S-10 | `GET /api/v1/documents/templates/{id}/view` é público e devolve o PDF do modelo. | `backend/src/gestaodecomunicados/api/v1/endpoints/documents.py:358` | baixa (modelo em branco) | em aberto |
+| S-11 | Sem login, o que esconde evento é só o público-alvo. `agenda_scope` administrativa ou ministerial só exige login quando vem exata no parâmetro (o filtro é por trecho, `ILIKE`), e o padrão do servidor para evento novo é "Administrativa" + "Público" (também nos padrões do `migrate_db()`): evento administrativo gravado sem público-alvo sai na lista pública. A tela usa "Ministerial" como padrão. De que lado vale a regra é decisão humana. | `backend/src/gestaodecomunicados/schemas/all_schemas.py:111,114`, `api/v1/router.py`, `frontend/src/components/EventModal.js:83` | média (depende dos dados) | em aberto |
+| S-12 | O token vale 7 dias e não tem revogação: trocar a senha (`contas trocar-senha`) não derruba sessão aberta, e o único corte é trocar o `JWT_SECRET_KEY`, que derruba todo mundo (`.ai/core/seguranca.md` §3). Excluir o usuário derruba, porque o token é conferido contra a conta. | `backend/src/gestaodecomunicados/core/security.py`, `api/v1/auth.py` | média | em aberto |
+| S-13 | A regra de senha (10 caracteres com letras e números, até 72 bytes) só existe no `contas.py`. `POST /api/v1/users/`, usado pela tela de acessos, aceita qualquer senha, e a criação de usuário ficou em dois lugares. Com o S-06 aberto, senha fraca é o caminho de tomada de conta que sobra. | `backend/src/gestaodecomunicados/api/v1/endpoints/users.py`, `contas.py` | média | em aberto |
 
-S-01 a S-03 juntos: qualquer pessoa que alcance a API vira administradora. A correção mexe em autenticação e exige trocar o segredo na VPS: é ponto de parada (`.ai/core/principios.md` §5). Os testes usam o login automático do S-01 (`backend/tests/conftest.py`, fixture `admin_auth_headers`); a correção precisa criar o admin na fixture.
+S-01 a S-03 juntos: qualquer pessoa que alcance a API vira administradora. A correção, junto com a do S-04, está no PR #2 (branch `fix/seguranca-admin-jwt`): sem seed nem admin padrão (contas pela linha de comando, `gestaodecomunicados.contas`), segredo em `JWT_SECRET_KEY` (o valor que esteve no código é recusado) e filtro de público-alvo numa função só. Os quatro só passam a "corrigido" depois do merge e do roteiro do PR executado e verificado na VPS: segredo novo; senha trocada com o backend parado, sem janela em que a senha antiga vale com o código novo no ar, das contas `admin@secretaria.com` e `admin@admin.com` e das contas de teste que os scripts órfãos criam com senha publicada (`ministerio@regional.com`, `teste@teste.com`, `teste2@teste.com`, H-06); e revisão da lista de usuários, porque a exposição vem desde pelo menos 20/02/2026.
 
 ## Bugs
 
@@ -41,17 +44,17 @@ B-07 (visto no navegador em 28/09/2026, ao provar o B-06): `/agenda-ministerial`
 | # | Achado |
 |---|---|
 | H-01 | `backend/uploads/` (fotos e arquivos enviados) está no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: mover para fora da árvore e só depois tirar do índice, combinado com quem opera o servidor. |
-| H-02 | 25 arquivos `.pyc` versionados. O `.gitignore` agora ignora novos; tirar os atuais segue o mesmo cuidado do H-01. |
+| H-02 | 25 arquivos `.pyc` versionados, todos `cpython-312`, com o segredo antigo do JWT e as credenciais padrão. Saem do git no PR #2, com aprovação do Lucas em 27/09/2026: a imagem é Python 3.11 e ignora `cpython-312`, então a VPS não sente a remoção. Continuam no histórico, e quem protege é a troca do segredo (S-03). O `.gitignore` já ignora novos. |
 | H-03 | O `frontend/Dockerfile` roda `npm install` sobre um `package-lock.json` que não está no git; o lockfile do projeto é do pnpm. O compose não sobe a partir de um clone limpo. |
-| H-04 | O compose exige `backend/.env` e não há `backend/.env.example` (existiu no histórico). |
+| H-04 | O compose exige `backend/.env` e não há `backend/.env.example` (existiu no histórico). O PR #2 traz o modelo de volta, com `JWT_SECRET_KEY`. |
 | H-05 | Commits feitos na VPS (autor `root`) e merge de alterações locais em 07/07/2026: o servidor pode ter código que a `main` não tem. |
-| H-06 | Código e arquivos órfãos: `backend/src/semusp_api/` (outro projeto), `create_test_user.py` e `backend/create_test_user.py`, `backend/drop_db.py`, `backend/extract_fields.py`, `backend/migrate_resources.py`, `backend/test_db.py`, `backend/test_rest_user.py`, `frontend/find_emojis.py`, `download-stitch-assets.sh`, `stitch_dashboard_variant1.html` e `.png`. |
+| H-06 | Código e arquivos órfãos: `backend/src/semusp_api/` (outro projeto), `backend/src/gestaodecomunicados/initial_data.py` (seed quebrado que cria admin com senha fixa), `create_test_user.py` e `backend/create_test_user.py`, `backend/drop_db.py`, `backend/extract_fields.py`, `backend/migrate_resources.py`, `backend/test_db.py`, `backend/test_rest_user.py`, `frontend/find_emojis.py`, `download-stitch-assets.sh`, `stitch_dashboard_variant1.html` e `.png`. |
 | H-07 | `nginx/nginx.conf` vazio. |
 | H-08 | O backend não roda nem testa fora de container: `pdf_service.py` e `main.py` criam pastas em `/app` no import. |
 | H-09 | Tailwind 3 e `@tailwindcss/postcss` 4 instalados, só o 3 em uso; `typescript` instalado sem código TS. |
 | H-10 | `ruff`: 22 erros e 32 arquivos fora do formato. ESLint: 16 violações de `react-hooks/set-state-in-effect`, congeladas em `frontend/eslint-suppressions.json`. |
 | H-11 | Schema por `create_all` + `migrate_db()` (SQL cru a cada boot), datas sem fuso e como texto (`News.date`, `Schedule.time`), exclusão física em tudo. Divergem de `.ai/core/banco.md`; mudar é remodelagem. |
-| H-12 | `backend/uv.lock` defasado do `pyproject.toml`: faltam `bcrypt`, `boto3`, `email-validator`, `pymupdf`, `python-jose` e `python-multipart`, com as dependências deles. O `uv sync --frozen` do CI instala o lock incompleto e o `uv run` refaz o lock na hora, com a versão mais nova de cada pacote; o `backend/Dockerfile` nem copia o lock. Achado em 27/09/2026, na correção de S-01 a S-04. **Estado (28/09/2026):** em aberto, com correção proposta na branch `fix/uv-lock-completo`: lock completo (52 pacotes; os 33 que já estavam mantêm a versão) e CI com `uv sync --locked` e `uv run --frozen`, que falha com lock defasado. O `backend/Dockerfile` continua sem usar o lock: trocar muda o build da produção e depende de aprovação. Construído na máquina em 28/09, o `Dockerfile` atual instala versões mais novas que as do lock (`fastapi` 0.141.1, `starlette` 1.7.0, `idna` 3.20, `anyio` 4.15.1, entre 19 pacotes diferentes), já acima das correções do D-02; passar a usar o lock sem atualizá-lo seria descer para as versões com aviso. |
+| H-12 | `backend/uv.lock` defasado do `pyproject.toml`: faltam `bcrypt`, `boto3`, `email-validator`, `pymupdf`, `python-jose` e `python-multipart`, com as dependências deles. O `uv sync --frozen` do CI instala o lock incompleto e o `uv run` refaz o lock na hora, com a versão mais nova de cada pacote; o `backend/Dockerfile` nem copia o lock. Achado em 27/09/2026, na correção de S-01 a S-04. **Estado (28/09/2026):** lock completo (52 pacotes; os 33 que já estavam mantêm a versão) e CI com `uv sync --locked` e `uv run --frozen`, que falha com lock defasado, na `main` pelo PR #4. O `backend/Dockerfile` continua sem usar o lock: trocar muda o build da produção e depende de aprovação. Construído na máquina em 28/09, o `Dockerfile` atual instala versões mais novas que as do lock (`fastapi` 0.141.1, `starlette` 1.7.0, `idna` 3.20, `anyio` 4.15.1, entre 19 pacotes diferentes), já acima das correções do D-02; passar a usar o lock sem atualizá-lo seria descer para as versões com aviso. |
 
 ## Dependências
 
@@ -96,8 +99,8 @@ Sem aviso: `python-jose` 3.5.0, que assina o login, `bcrypt`, `cryptography`, `p
 
 ## Ordem sugerida
 
-1. S-01, S-02 e S-03 numa branch de segurança, com a troca do segredo na VPS no mesmo dia do deploy.
-2. S-04 e S-06.
+1. S-01 a S-04: correção no PR #2. O deploy leva a troca do segredo e das senhas das contas padrão na VPS, no mesmo dia, pelo roteiro do PR.
+2. S-06 com o S-13 (limite de tentativas e regra de senha na API); o S-12 junto, se a revogação de token for aprovada; o S-11 depois da decisão de que lado vale a regra.
 3. Confirmar com quem opera a VPS o que difere da `main` (H-05) e fazer o compose subir do git (H-03, H-04); depois S-05.
 4. B-01 com teste; os demais bugs em fatias próprias.
-5. H-12: lock completo e CI na branch `fix/uv-lock-completo`; o `Dockerfile` usando o lock, depois de aprovado. Depois D-01 (`next`) e as duas pendências do D-02 (`starlette` com o FastAPI, e `idna`), numa fatia própria, antes ou junto da troca do `Dockerfile`.
+5. H-12: lock completo e CI já na `main` (PR #4); falta o `Dockerfile` usando o lock, depois de aprovado. Depois D-01 (`next`) e as duas pendências do D-02 (`starlette` com o FastAPI, e `idna`), numa fatia própria, antes ou junto da troca do `Dockerfile`.

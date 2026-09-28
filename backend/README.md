@@ -25,10 +25,7 @@ Este é o backend do sistema Gestão de Comunicados, construído com **FastAPI**
     pip install fastapi uvicorn[standard] pydantic pydantic-settings sqlalchemy
     ```
 
-3.  Configure as variáveis de ambiente:
-    ```bash
-    cp .env.example .env
-    ```
+3.  Configure as variáveis de ambiente: copie o `.env.example` para `.env` e preencha `JWT_SECRET_KEY` com a saída de `openssl rand -hex 32`. Ela é obrigatória: sem ela o backend não sobe.
 
 4.  Execute o servidor de desenvolvimento:
     ```bash

@@ -57,26 +57,29 @@ Um sistema web completo para a centralização de informações técnicas, calen
    cd gestaodesecretaria
    ```
 
-2. **Dê boot unificado nos containers pelo Terminal:**
+2. **Crie o `backend/.env`:** copie o `backend/.env.example` e preencha `JWT_SECRET_KEY` com a saída de `openssl rand -hex 32`. Sem ela, o backend não sobe.
+
+3. **Dê boot unificado nos containers pelo Terminal:**
    ```bash
    docker compose up -d --build
    ```
    > 💡 Dica: O switch `--build` vai forçar as "receitas" (`Dockerfile`s) a atualizarem nativamente os binários do Python (passlib, bcrypt headers) e do Node (NPM modules). O `-d` soltará o terminal rodando no fundo.
 
-3. **Explore e navegue:**
+4. **Explore e navegue:**
    - **Frontend (Onde o Usuário Interage):** [http://localhost:3000](http://localhost:3000)
    - **Backend Documentação Aberta (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🔐 Credenciais Padrão do Sistema (Seed)
+## 🔐 Primeiro acesso
 
-Sempre que a aplicação backend identificar e construir um banco de dados novo a partir do zero nas rotas ORM, as seguintes credenciais do **super-administrador** ganham vida:
+O sistema não cria administrador com senha padrão. Com o backend no ar, crie o primeiro pela linha de comando:
 
-- **E-mail Auth:** `admin@secretaria.com`
-- **Senha Auth:** `admin`
+```bash
+docker compose exec backend uv run python -m gestaodecomunicados.contas criar-admin <seu-e-mail>
+```
 
-Basta logar na **Área Restrita** através do botão contido no menu do cabeçalho ou pelo link de acesso de colaboradores disposto no "rodapé" virtual.
+A senha é gerada e aparece uma única vez na tela: guarde num cofre de senhas. Depois, é só logar na **Área Restrita** pelo botão do cabeçalho. Os demais usuários são criados lá, por um administrador; a troca de senha é pela linha de comando (`trocar-senha`). Detalhes em [`docs/DEPLOY.md`](docs/DEPLOY.md), seção "Contas de acesso".
 
 ---
 

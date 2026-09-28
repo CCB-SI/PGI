@@ -8,7 +8,6 @@ from .models import all_models  # Importa modelos para registrar no SQLAlchemy
 import os
 
 from .core.database import SessionLocal
-from .core.security import get_password_hash
 
 # Criar tabelas no banco de dados
 Base.metadata.create_all(bind=engine)
@@ -104,12 +103,12 @@ migrate_db()
 
 def init_db():
     db = SessionLocal()
-    admin_user = db.query(all_models.User).filter(all_models.User.email == "admin@secretaria.com").first()
-    if not admin_user:
-        hashed_password = get_password_hash("admin")
-        db_user = all_models.User(email="admin@secretaria.com", password_hash=hashed_password, role="admin")
-        db.add(db_user)
-        db.commit()
+    # Administrador não nasce com senha fixa: é criado pela linha de comando (docs/DEPLOY.md)
+    if not db.query(all_models.User).filter(all_models.User.role == "admin").first():
+        print(
+            "Nenhum administrador cadastrado. Crie o primeiro com: "
+            "uv run python -m gestaodecomunicados.contas criar-admin <e-mail>"
+        )
 
     reference_locations = [
         {

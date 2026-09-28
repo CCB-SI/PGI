@@ -3,7 +3,9 @@ from typing import Optional
 from jose import jwt
 import bcrypt
 
-SECRET_KEY = "my_super_secret_key_change_me_in_prod"
+from .config import settings
+
+SECRET_KEY = settings.JWT_SECRET_KEY.get_secret_value()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
