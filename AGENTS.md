@@ -219,7 +219,6 @@ Fonte: `docs/escopo/evolucao-do-sistema.md` e `docs/mudancas/2026-03-18-adequaco
 - O serviço `frontend` do compose não builda a partir do git (o Dockerfile copia um `package-lock.json` que não existe; o lockfile é do pnpm).
 - O compose exige `backend/.env`, e o backend não sobe sem `JWT_SECRET_KEY` nele (modelo em `backend/.env.example`).
 - O `backend/uv.lock` do git está defasado do `pyproject.toml` (achado H-12): o `uv run` refaz o lock na hora. Rodando os testes com a pasta `backend` montada no container, o lock sai modificado; restaure antes de commitar.
-- O `fetchEvents` do front não manda o token (achado B-06): logado, a lista de eventos só traz o público, e `/agenda-ministerial` recebe 401 e desloga quem entra nela.
 - `backend/uploads/` está no git. Tirar pelo git apaga a cópia da VPS no próximo `git pull`: é operação combinada com quem opera o servidor.
 - `pnpm install` com pnpm 11 ou mais novo para em "Ignored build scripts" (`ERR_PNPM_IGNORED_BUILDS`); o CI usa pnpm 10, que só avisa.
 - `docker-compose.yml` publica o `NEXT_PUBLIC_BACKEND_URL` como `http://localhost:8005`: foto de comum no navegador de outra máquina aponta para o localhost dela.
