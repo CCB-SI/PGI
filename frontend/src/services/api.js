@@ -47,6 +47,7 @@ export async function fetchEvents(filters = {}) {
         const queryString = params.toString() ? `?${params.toString()}` : '';
         const res = await apiFetch(`${API_URL}/events${queryString}`, {
             cache: 'no-store',
+            headers: { ...authHeaders() },
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
@@ -325,6 +326,7 @@ export async function fetchNews(skip = 0, limit = 100) {
     try {
         const res = await apiFetch(`${API_URL}/news?skip=${skip}&limit=${limit}`, {
             cache: 'no-store',
+            headers: { ...authHeaders() },
         });
         if (!res.ok) throw new Error('Failed to fetch news');
         return res.json();
