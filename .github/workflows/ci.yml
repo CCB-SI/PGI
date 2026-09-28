@@ -22,15 +22,18 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      # Mesma versão que gerou o backend/uv.lock. Ao trocar, rode `uv lock --check`.
       - name: Instala o uv
-        run: pip install --no-cache-dir uv
+        run: pip install --no-cache-dir uv==0.12.19
       - name: /app como no docker-compose
         run: |
           mkdir -p /app/uploads
           ln -s "$GITHUB_WORKSPACE/backend/templates" /app/templates
-      - name: Dependências do lockfile, sem atualizar
-        run: uv sync --extra dev --frozen
-      - run: uv run pytest -q
+      # --locked falha quando o uv.lock está defasado do pyproject.toml (achado H-12).
+      - name: Dependências do lockfile, falha se estiver defasado
+        run: uv sync --extra dev --locked
+      # --frozen: o uv run não refaz o lock nem troca versão na hora.
+      - run: uv run --frozen pytest -q
 
   frontend:
     name: Frontend (lint + build)
